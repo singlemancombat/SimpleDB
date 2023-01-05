@@ -13,65 +13,65 @@ import edu.berkeley.cs186.database.TransactionContext;
  * context since no synchronization across transactions is needed.
  */
 public class DummyLockContext extends LockContext {
-    public DummyLockContext() {
-        this((LockContext) null);
-    }
+  public DummyLockContext() {
+    this((LockContext) null);
+  }
 
-    public DummyLockContext(LockContext parent) {
-        super(new DummyLockManager(), parent, "Unnamed");
-    }
+  public DummyLockContext(LockContext parent) {
+    super(new DummyLockManager(), parent, "Unnamed");
+  }
 
-    public DummyLockContext(String name) {
-        this(null, name);
-    }
+  public DummyLockContext(String name) {
+    this(null, name);
+  }
 
-    public DummyLockContext(LockContext parent, String name) {
-        super(new DummyLockManager(), parent, name);
-    }
+  public DummyLockContext(LockContext parent, String name) {
+    super(new DummyLockManager(), parent, name);
+  }
 
-    @Override
-    public void acquire(TransactionContext transaction, LockType lockType) {
-    }
+  @Override
+  public void acquire(TransactionContext transaction, LockType lockType) {
+  }
 
-    @Override
-    public void release(TransactionContext transaction) {
-    }
+  @Override
+  public void release(TransactionContext transaction) {
+  }
 
-    @Override
-    public void promote(TransactionContext transaction, LockType newLockType) {
-    }
+  @Override
+  public void promote(TransactionContext transaction, LockType newLockType) {
+  }
 
-    @Override
-    public void escalate(TransactionContext transaction) {
-    }
+  @Override
+  public void escalate(TransactionContext transaction) {
+  }
 
-    @Override
-    public void disableChildLocks() {
-    }
+  @Override
+  public void disableChildLocks() {
+  }
 
-    @Override
-    public LockContext childContext(String name) {
-        return new DummyLockContext(this, name);
-    }
+  @Override
+  public LockContext childContext(String name) {
+    return new DummyLockContext(this, name);
+  }
 
-    @Override
-    public int getNumChildren(TransactionContext transaction) {
-        return 0;
-    }
+  @Override
+  public int getNumChildren(TransactionContext transaction) {
+    return 0;
+  }
 
-    @Override
-    public LockType getExplicitLockType(TransactionContext transaction) {
-        return LockType.NL;
-    }
+  @Override
+  public LockType getExplicitLockType(TransactionContext transaction) {
+    return LockType.NL;
+  }
 
-    @Override
-    public LockType getEffectiveLockType(TransactionContext transaction) {
-        return LockType.NL;
-    }
+  @Override
+  public LockType getEffectiveLockType(TransactionContext transaction) {
+    return LockType.NL;
+  }
 
-    @Override
-    public String toString() {
-        return "Dummy Lock Context(\"" + name.toString() + "\")";
-    }
+  @Override
+  public String toString() {
+    return "Dummy Lock Context(\"" + name.toString() + "\")";
+  }
 }
 

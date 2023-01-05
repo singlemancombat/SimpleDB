@@ -12,66 +12,66 @@ import java.util.Objects;
  * entry number.
  */
 public class RecordId implements Comparable<RecordId> {
-    private long pageNum;
-    private short entryNum;
+  private long pageNum;
+  private short entryNum;
 
-    public RecordId(long pageNum, short entryNum) {
-        this.pageNum = pageNum;
-        this.entryNum = entryNum;
-    }
+  public RecordId(long pageNum, short entryNum) {
+    this.pageNum = pageNum;
+    this.entryNum = entryNum;
+  }
 
-    public static int getSizeInBytes() {
-        // See toBytes.
-        return Long.BYTES + Short.BYTES;
-    }
+  public static int getSizeInBytes() {
+    // See toBytes.
+    return Long.BYTES + Short.BYTES;
+  }
 
-    public static RecordId fromBytes(Buffer buf) {
-        return new RecordId(buf.getLong(), buf.getShort());
-    }
+  public static RecordId fromBytes(Buffer buf) {
+    return new RecordId(buf.getLong(), buf.getShort());
+  }
 
-    public long getPageNum() {
-        return this.pageNum;
-    }
+  public long getPageNum() {
+    return this.pageNum;
+  }
 
-    public short getEntryNum() {
-        return this.entryNum;
-    }
+  public short getEntryNum() {
+    return this.entryNum;
+  }
 
-    public byte[] toBytes() {
-        // A RecordId is serialized as its 8-byte page number followed by its
-        // 2-byte short.
-        return ByteBuffer.allocate(getSizeInBytes())
-                .putLong(pageNum)
-                .putShort(entryNum)
-                .array();
-    }
+  public byte[] toBytes() {
+    // A RecordId is serialized as its 8-byte page number followed by its
+    // 2-byte short.
+    return ByteBuffer.allocate(getSizeInBytes())
+        .putLong(pageNum)
+        .putShort(entryNum)
+        .array();
+  }
 
-    @Override
-    public String toString() {
-        return String.format("RecordId(%d, %d)", pageNum, entryNum);
-    }
+  @Override
+  public String toString() {
+    return String.format("RecordId(%d, %d)", pageNum, entryNum);
+  }
 
-    public String toSexp() {
-        return String.format("(%d %d)", pageNum, entryNum);
-    }
+  public String toSexp() {
+    return String.format("(%d %d)", pageNum, entryNum);
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == this) return true;
-        if (o == null) return false;
-        if (!(o instanceof RecordId)) return false;
-        RecordId r = (RecordId) o;
-        return pageNum == r.pageNum && entryNum == r.entryNum;
-    }
+  @Override
+  public boolean equals(Object o) {
+    if (o == this) return true;
+    if (o == null) return false;
+    if (!(o instanceof RecordId)) return false;
+    RecordId r = (RecordId) o;
+    return pageNum == r.pageNum && entryNum == r.entryNum;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(pageNum, entryNum);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(pageNum, entryNum);
+  }
 
-    @Override
-    public int compareTo(RecordId r) {
-        int x = Long.compare(pageNum, r.pageNum);
-        return x == 0 ? Integer.compare(entryNum, r.entryNum) : x;
-    }
+  @Override
+  public int compareTo(RecordId r) {
+    int x = Long.compare(pageNum, r.pageNum);
+    return x == 0 ? Integer.compare(entryNum, r.entryNum) : x;
+  }
 }

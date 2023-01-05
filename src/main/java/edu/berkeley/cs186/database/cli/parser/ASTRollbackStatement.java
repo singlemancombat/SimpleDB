@@ -4,19 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTRollbackStatement extends SimpleNode {
-    public ASTRollbackStatement(int id) {
-        super(id);
-    }
+  public ASTRollbackStatement(int id) {
+    super(id);
+  }
 
-    public ASTRollbackStatement(RookieParser p, int id) {
-        super(p, id);
-    }
+  public ASTRollbackStatement(RookieParser p, int id) {
+    super(p, id);
+  }
 
-    /**
-     * Accept the visitor.
-     **/
-    public void jjtAccept(RookieParserVisitor visitor, Object data) {
-        visitor.visit(this, data);
-    }
+  /**
+   * Accept the visitor.
+   **/
+  public void jjtAccept(RookieParserVisitor visitor, Object data) {
+    visitor.visit(this, data);
+  }
 }
 /* JavaCC - OriginalChecksum=32a1875e42f8be8b3563953fa5bb394e (do not edit this line) */

@@ -9,8 +9,8 @@ import static org.junit.Assert.assertEquals;
 
 @Category({Proj0Tests.class, PublicTests.class})
 public class TestWelcome {
-    @Test
-    public void testComplete() {
-        assertEquals("welcome", new StringDataBox("welcome", 7).toString());
-    }
+  @Test
+  public void testComplete() {
+    assertEquals("welcome", new StringDataBox("welcome", 7).toString());
+  }
 }

@@ -9,44 +9,44 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class BeginCheckpointLogRecord extends LogRecord {
-    public BeginCheckpointLogRecord() {
-        super(LogType.BEGIN_CHECKPOINT);
-    }
+  public BeginCheckpointLogRecord() {
+    super(LogType.BEGIN_CHECKPOINT);
+  }
 
-    public static Optional<LogRecord> fromBytes(Buffer buf) {
-        return Optional.of(new BeginCheckpointLogRecord());
-    }
+  public static Optional<LogRecord> fromBytes(Buffer buf) {
+    return Optional.of(new BeginCheckpointLogRecord());
+  }
 
-    @Override
-    public byte[] toBytes() {
-        byte[] b = new byte[1];
-        ByteBuffer.wrap(b).put((byte) getType().getValue());
-        return b;
-    }
+  @Override
+  public byte[] toBytes() {
+    byte[] b = new byte[1];
+    ByteBuffer.wrap(b).put((byte) getType().getValue());
+    return b;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-        return true; // Begin Checkpoints are indistinguishable from each other
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    return true; // Begin Checkpoints are indistinguishable from each other
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode());
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode());
+  }
 
-    @Override
-    public String toString() {
-        return "BeginCheckpointLogRecord{" +
-                ", LSN=" + LSN +
-                '}';
-    }
+  @Override
+  public String toString() {
+    return "BeginCheckpointLogRecord{" +
+        ", LSN=" + LSN +
+        '}';
+  }
 }

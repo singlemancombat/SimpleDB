@@ -24,29 +24,29 @@ import java.util.Iterator;
  * iter.next();     // returns 3
  */
 public interface BacktrackingIterator<T> extends Iterator<T> {
-    /**
-     * markPrev() marks the last returned value of the iterator, which is the last
-     * returned value of next().
-     * <p>
-     * Calling markPrev() on an iterator that has not yielded a record yet,
-     * or that has not yielded a record since the last reset() call does nothing.
-     */
-    void markPrev();
+  /**
+   * markPrev() marks the last returned value of the iterator, which is the last
+   * returned value of next().
+   * <p>
+   * Calling markPrev() on an iterator that has not yielded a record yet,
+   * or that has not yielded a record since the last reset() call does nothing.
+   */
+  void markPrev();
 
-    /**
-     * markNext() marks the next returned value of the iterator, which is the
-     * value returned by the next call of next().
-     * <p>
-     * Calling markNext() on an iterator that has no records left does nothing.
-     */
-    void markNext();
+  /**
+   * markNext() marks the next returned value of the iterator, which is the
+   * value returned by the next call of next().
+   * <p>
+   * Calling markNext() on an iterator that has no records left does nothing.
+   */
+  void markNext();
 
-    /**
-     * reset() resets the iterator to the last marked location. The subsequent
-     * call to next() should return the value that was marked. If nothing has
-     * been marked, reset() does nothing. You may reset() to the same point as
-     * many times as desired until a new mark is set.
-     */
-    void reset();
+  /**
+   * reset() resets the iterator to the last marked location. The subsequent
+   * call to next() should return the value that was marked. If nothing has
+   * been marked, reset() does nothing. You may reset() to the same point as
+   * many times as desired until a new mark is set.
+   */
+  void reset();
 }
 

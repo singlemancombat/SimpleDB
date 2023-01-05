@@ -4,19 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTNotOperator extends SimpleNode {
-    public ASTNotOperator(int id) {
-        super(id);
-    }
+  public ASTNotOperator(int id) {
+    super(id);
+  }
 
-    public ASTNotOperator(RookieParser p, int id) {
-        super(p, id);
-    }
+  public ASTNotOperator(RookieParser p, int id) {
+    super(p, id);
+  }
 
-    /**
-     * Accept the visitor.
-     **/
-    public void jjtAccept(RookieParserVisitor visitor, Object data) {
-        visitor.visit(this, data);
-    }
+  /**
+   * Accept the visitor.
+   **/
+  public void jjtAccept(RookieParserVisitor visitor, Object data) {
+    visitor.visit(this, data);
+  }
 }
 /* JavaCC - OriginalChecksum=b1b79d1888c9e948003c7fd991db5663 (do not edit this line) */

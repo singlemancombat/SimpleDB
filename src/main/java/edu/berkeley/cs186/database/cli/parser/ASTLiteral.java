@@ -4,19 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTLiteral extends SimpleNode {
-    public ASTLiteral(int id) {
-        super(id);
-    }
+  public ASTLiteral(int id) {
+    super(id);
+  }
 
-    public ASTLiteral(RookieParser p, int id) {
-        super(p, id);
-    }
+  public ASTLiteral(RookieParser p, int id) {
+    super(p, id);
+  }
 
-    /**
-     * Accept the visitor.
-     **/
-    public void jjtAccept(RookieParserVisitor visitor, Object data) {
-        visitor.visit(this, data);
-    }
+  /**
+   * Accept the visitor.
+   **/
+  public void jjtAccept(RookieParserVisitor visitor, Object data) {
+    visitor.visit(this, data);
+  }
 }
 /* JavaCC - OriginalChecksum=af4959770415eae2d999d949f583934e (do not edit this line) */

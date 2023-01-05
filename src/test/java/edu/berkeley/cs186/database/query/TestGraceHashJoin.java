@@ -27,240 +27,240 @@ import static org.junit.Assert.*;
 
 @Category({Proj3Tests.class, Proj3Part1Tests.class})
 public class TestGraceHashJoin {
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
-    private Database d;
+  @Rule
+  public TemporaryFolder tempFolder = new TemporaryFolder();
+  private Database d;
 
-    @Before
-    public void setup() throws IOException {
-        File tempDir = tempFolder.newFolder("ghjTest");
-        d = new Database(tempDir.getAbsolutePath(), 256);
-        d.setWorkMem(6); // B = 6
-        d.waitAllTransactions();
+  @Before
+  public void setup() throws IOException {
+    File tempDir = tempFolder.newFolder("ghjTest");
+    d = new Database(tempDir.getAbsolutePath(), 256);
+    d.setWorkMem(6); // B = 6
+    d.waitAllTransactions();
+  }
+
+  /**
+   * Sanity Test to make sure SHJ works. You should pass this without having
+   * touched GHJ.
+   */
+  @Test
+  @Category(SystemTests.class)
+  public void testSimpleSHJ() {
+    try (Transaction transaction = d.beginTransaction()) {
+      Schema schema = TestUtils.createSchemaWithAllTypes();
+
+      List<Record> leftRecords = new ArrayList<>();
+      List<Record> rightRecords = new ArrayList<>();
+      Set<Record> expectedOutput = new HashSet<>();
+
+      for (int i = 0; i < 10; i++) {
+        Record r = TestUtils.createRecordWithAllTypesWithValue(i);
+        leftRecords.add(r);
+      }
+
+      for (int i = 5; i < 15; i++) {
+        Record r = TestUtils.createRecordWithAllTypesWithValue(i);
+        rightRecords.add(r);
+      }
+
+      for (int i = 5; i < 10; i++) {
+        Record r = TestUtils.createRecordWithAllTypesWithValue(i);
+        expectedOutput.add(r.concat(r));
+      }
+
+      SHJOperator shj = new SHJOperator(
+          new TestSourceOperator(leftRecords, schema),
+          new TestSourceOperator(rightRecords, schema),
+          "int", "int", transaction.getTransactionContext()
+      );
+
+      Set<Record> output = new HashSet<>();
+      for (Record record : shj) output.add(record);
+
+      assertEquals(5, output.size());
+      assertEquals(expectedOutput, output);
     }
+  }
 
-    /**
-     * Sanity Test to make sure SHJ works. You should pass this without having
-     * touched GHJ.
-     */
-    @Test
-    @Category(SystemTests.class)
-    public void testSimpleSHJ() {
-        try (Transaction transaction = d.beginTransaction()) {
-            Schema schema = TestUtils.createSchemaWithAllTypes();
+  /**
+   * Sanity test on a simple set of inputs. GHJ should behave similarly to SHJ
+   * for this one, since they should both use the same hash function and
+   * build by default on the left relation.
+   */
+  @Test
+  @Category(PublicTests.class)
+  public void testSimpleGHJ() {
+    try (Transaction transaction = d.beginTransaction()) {
+      List<Record> leftRecords = new ArrayList<>();
+      List<Record> rightRecords = new ArrayList<>();
 
-            List<Record> leftRecords = new ArrayList<>();
-            List<Record> rightRecords = new ArrayList<>();
-            Set<Record> expectedOutput = new HashSet<>();
+      List<Record> expectedOutput = new ArrayList<>();
 
-            for (int i = 0; i < 10; i++) {
-                Record r = TestUtils.createRecordWithAllTypesWithValue(i);
-                leftRecords.add(r);
-            }
+      Schema schema = TestUtils.createSchemaWithAllTypes();
 
-            for (int i = 5; i < 15; i++) {
-                Record r = TestUtils.createRecordWithAllTypesWithValue(i);
-                rightRecords.add(r);
-            }
+      for (int i = 0; i < 10; i++) {
+        Record r = TestUtils.createRecordWithAllTypesWithValue(i);
+        leftRecords.add(r);
+      }
 
-            for (int i = 5; i < 10; i++) {
-                Record r = TestUtils.createRecordWithAllTypesWithValue(i);
-                expectedOutput.add(r.concat(r));
-            }
+      for (int i = 5; i < 15; i++) {
+        Record r = TestUtils.createRecordWithAllTypesWithValue(i);
+        rightRecords.add(r);
+      }
 
-            SHJOperator shj = new SHJOperator(
-                    new TestSourceOperator(leftRecords, schema),
-                    new TestSourceOperator(rightRecords, schema),
-                    "int", "int", transaction.getTransactionContext()
-            );
+      SHJOperator shj = new SHJOperator(
+          new TestSourceOperator(leftRecords, schema),
+          new TestSourceOperator(rightRecords, schema),
+          "int", "int",
+          transaction.getTransactionContext()
+      );
+      for (Record expected : shj) expectedOutput.add(expected);
 
-            Set<Record> output = new HashSet<>();
-            for (Record record : shj) output.add(record);
+      GHJOperator ghj = new GHJOperator(
+          new TestSourceOperator(leftRecords, schema),
+          new TestSourceOperator(rightRecords, schema),
+          "int", "int",
+          transaction.getTransactionContext()
+      );
+      List<Record> output = new ArrayList<>();
+      for (Record record : ghj) output.add(record);
 
-            assertEquals(5, output.size());
-            assertEquals(expectedOutput, output);
-        }
+      assertEquals(5, output.size());
+      assertEquals(expectedOutput, output);
     }
+  }
 
-    /**
-     * Sanity test on a simple set of inputs. GHJ should behave similarly to SHJ
-     * for this one, since they should both use the same hash function and
-     * build by default on the left relation.
-     */
-    @Test
-    @Category(PublicTests.class)
-    public void testSimpleGHJ() {
-        try (Transaction transaction = d.beginTransaction()) {
-            List<Record> leftRecords = new ArrayList<>();
-            List<Record> rightRecords = new ArrayList<>();
+  /**
+   * Tests GHJ with records of different schemas on some join column.
+   */
+  @Test
+  @Category(PublicTests.class)
+  public void testGHJDifferentSchemas() {
+    try (Transaction transaction = d.beginTransaction()) {
+      d.setWorkMem(3); // B=3
+      Schema leftSchema = new Schema()
+          .add("int", Type.intType())
+          .add("string", Type.stringType(10));
+      Schema rightSchema = TestUtils.createSchemaWithAllTypes();
 
-            List<Record> expectedOutput = new ArrayList<>();
+      List<Record> leftRecords = new ArrayList<>();
+      List<Record> rightRecords = new ArrayList<>();
+      Set<Record> expectedOutput = new HashSet<>();
 
-            Schema schema = TestUtils.createSchemaWithAllTypes();
+      d.setWorkMem(3);
 
-            for (int i = 0; i < 10; i++) {
-                Record r = TestUtils.createRecordWithAllTypesWithValue(i);
-                leftRecords.add(r);
-            }
+      for (int i = 0; i < 1860; i++) {
+        Record left = new Record(i, "I love 186");
+        leftRecords.add(left);
+      }
 
-            for (int i = 5; i < 15; i++) {
-                Record r = TestUtils.createRecordWithAllTypesWithValue(i);
-                rightRecords.add(r);
-            }
+      for (int i = 186; i < 9300; i++) {
+        Record right = TestUtils.createRecordWithAllTypesWithValue(i);
+        rightRecords.add(right);
+      }
 
-            SHJOperator shj = new SHJOperator(
-                    new TestSourceOperator(leftRecords, schema),
-                    new TestSourceOperator(rightRecords, schema),
-                    "int", "int",
-                    transaction.getTransactionContext()
-            );
-            for (Record expected : shj) expectedOutput.add(expected);
+      for (int i = 186; i < 1860; i++) {
+        Record r1 = new Record(i, "I love 186");
+        Record r2 = TestUtils.createRecordWithAllTypesWithValue(i);
+        expectedOutput.add(r1.concat(r2));
+      }
 
-            GHJOperator ghj = new GHJOperator(
-                    new TestSourceOperator(leftRecords, schema),
-                    new TestSourceOperator(rightRecords, schema),
-                    "int", "int",
-                    transaction.getTransactionContext()
-            );
-            List<Record> output = new ArrayList<>();
-            for (Record record : ghj) output.add(record);
+      GHJOperator ghj = new GHJOperator(
+          new TestSourceOperator(leftRecords, leftSchema),
+          new TestSourceOperator(rightRecords, rightSchema),
+          "int", "int",
+          transaction.getTransactionContext()
+      );
 
-            assertEquals(5, output.size());
-            assertEquals(expectedOutput, output);
-        }
+      List<Record> output = new ArrayList<>();
+      for (Record record : ghj) output.add(record);
+
+      assertEquals(1674, output.size());
+
+      for (Record r : output) {
+        assertTrue("Output incorrect", expectedOutput.contains(r));
+      }
     }
+  }
 
-    /**
-     * Tests GHJ with records of different schemas on some join column.
-     */
-    @Test
-    @Category(PublicTests.class)
-    public void testGHJDifferentSchemas() {
-        try (Transaction transaction = d.beginTransaction()) {
-            d.setWorkMem(3); // B=3
-            Schema leftSchema = new Schema()
-                    .add("int", Type.intType())
-                    .add("string", Type.stringType(10));
-            Schema rightSchema = TestUtils.createSchemaWithAllTypes();
+  /**
+   * Tests student's input and checks whether SHJ fails but GHJ passes.
+   */
+  @Test
+  @Category(PublicTests.class)
+  public void testBreakSHJButPassGHJ() {
+    try (Transaction transaction = d.beginTransaction()) {
+      Schema schema = new Schema()
+          .add("int", Type.intType())
+          .add("string", Type.stringType(500));
+      Pair<List<Record>, List<Record>> inputs = GHJOperator.getBreakSHJInputs();
 
-            List<Record> leftRecords = new ArrayList<>();
-            List<Record> rightRecords = new ArrayList<>();
-            Set<Record> expectedOutput = new HashSet<>();
+      List<Record> leftRecords = inputs.getFirst();
+      ;
+      List<Record> rightRecords = inputs.getSecond();
 
-            d.setWorkMem(3);
+      SHJOperator shj = new SHJOperator(
+          new TestSourceOperator(leftRecords, schema),
+          new TestSourceOperator(rightRecords, schema),
+          "int", "int",
+          transaction.getTransactionContext()
+      );
+      try {
+        Iterator<Record> iter = shj.iterator();
+        while (iter.hasNext()) iter.next();
+        fail("SHJ worked! It shouldn't have...");
+      } catch (Exception e) {
+        assertEquals("Simple Hash failed for the wrong reason!",
+            "The records in this partition cannot fit in B-2 pages of memory.", e.getMessage());
+      }
 
-            for (int i = 0; i < 1860; i++) {
-                Record left = new Record(i, "I love 186");
-                leftRecords.add(left);
-            }
+      GHJOperator ghj = new GHJOperator(
+          new TestSourceOperator(leftRecords, schema),
+          new TestSourceOperator(rightRecords, schema),
+          "int", "int",
+          transaction.getTransactionContext()
+      );
 
-            for (int i = 186; i < 9300; i++) {
-                Record right = TestUtils.createRecordWithAllTypesWithValue(i);
-                rightRecords.add(right);
-            }
-
-            for (int i = 186; i < 1860; i++) {
-                Record r1 = new Record(i, "I love 186");
-                Record r2 = TestUtils.createRecordWithAllTypesWithValue(i);
-                expectedOutput.add(r1.concat(r2));
-            }
-
-            GHJOperator ghj = new GHJOperator(
-                    new TestSourceOperator(leftRecords, leftSchema),
-                    new TestSourceOperator(rightRecords, rightSchema),
-                    "int", "int",
-                    transaction.getTransactionContext()
-            );
-
-            List<Record> output = new ArrayList<>();
-            for (Record record : ghj) output.add(record);
-
-            assertEquals(1674, output.size());
-
-            for (Record r : output) {
-                assertTrue("Output incorrect", expectedOutput.contains(r));
-            }
-        }
+      try {
+        Iterator<Record> iter = ghj.iterator();
+        while (iter.hasNext()) iter.next();
+      } catch (Exception e) {
+        fail(e.getMessage());
+      }
     }
+  }
 
-    /**
-     * Tests student's input and checks whether SHJ fails but GHJ passes.
-     */
-    @Test
-    @Category(PublicTests.class)
-    public void testBreakSHJButPassGHJ() {
-        try (Transaction transaction = d.beginTransaction()) {
-            Schema schema = new Schema()
-                    .add("int", Type.intType())
-                    .add("string", Type.stringType(500));
-            Pair<List<Record>, List<Record>> inputs = GHJOperator.getBreakSHJInputs();
+  /**
+   * Tests student input such that GHJ breaks when using regular partitions.
+   */
+  @Test
+  @Category(PublicTests.class)
+  public void testGHJBreak() {
+    try (Transaction transaction = d.beginTransaction()) {
+      Schema schema = new Schema()
+          .add("int", Type.intType())
+          .add("string", Type.stringType(500));
+      Pair<List<Record>, List<Record>> inputs = GHJOperator.getBreakGHJInputs();
 
-            List<Record> leftRecords = inputs.getFirst();
-            ;
-            List<Record> rightRecords = inputs.getSecond();
+      List<Record> leftRecords = inputs.getFirst();
+      List<Record> rightRecords = inputs.getSecond();
 
-            SHJOperator shj = new SHJOperator(
-                    new TestSourceOperator(leftRecords, schema),
-                    new TestSourceOperator(rightRecords, schema),
-                    "int", "int",
-                    transaction.getTransactionContext()
-            );
-            try {
-                Iterator<Record> iter = shj.iterator();
-                while (iter.hasNext()) iter.next();
-                fail("SHJ worked! It shouldn't have...");
-            } catch (Exception e) {
-                assertEquals("Simple Hash failed for the wrong reason!",
-                        "The records in this partition cannot fit in B-2 pages of memory.", e.getMessage());
-            }
+      GHJOperator ghj = new GHJOperator(
+          new TestSourceOperator(leftRecords, schema),
+          new TestSourceOperator(rightRecords, schema),
+          "int", "int",
+          transaction.getTransactionContext()
+      );
 
-            GHJOperator ghj = new GHJOperator(
-                    new TestSourceOperator(leftRecords, schema),
-                    new TestSourceOperator(rightRecords, schema),
-                    "int", "int",
-                    transaction.getTransactionContext()
-            );
-
-            try {
-                Iterator<Record> iter = ghj.iterator();
-                while (iter.hasNext()) iter.next();
-            } catch (Exception e) {
-                fail(e.getMessage());
-            }
-        }
+      try {
+        Iterator<Record> records = ghj.iterator();
+        while (records.hasNext()) records.next();
+        fail("GHJ Worked! It shouldn't have...");
+      } catch (Exception e) {
+        assertEquals("GHJ Failed for the wrong reason...",
+            "Reached the max number of passes", e.getMessage());
+      }
     }
-
-    /**
-     * Tests student input such that GHJ breaks when using regular partitions.
-     */
-    @Test
-    @Category(PublicTests.class)
-    public void testGHJBreak() {
-        try (Transaction transaction = d.beginTransaction()) {
-            Schema schema = new Schema()
-                    .add("int", Type.intType())
-                    .add("string", Type.stringType(500));
-            Pair<List<Record>, List<Record>> inputs = GHJOperator.getBreakGHJInputs();
-
-            List<Record> leftRecords = inputs.getFirst();
-            List<Record> rightRecords = inputs.getSecond();
-
-            GHJOperator ghj = new GHJOperator(
-                    new TestSourceOperator(leftRecords, schema),
-                    new TestSourceOperator(rightRecords, schema),
-                    "int", "int",
-                    transaction.getTransactionContext()
-            );
-
-            try {
-                Iterator<Record> records = ghj.iterator();
-                while (records.hasNext()) records.next();
-                fail("GHJ Worked! It shouldn't have...");
-            } catch (Exception e) {
-                assertEquals("GHJ Failed for the wrong reason...",
-                        "Reached the max number of passes", e.getMessage());
-            }
-        }
-    }
+  }
 
 }

@@ -4,19 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTExecutableStatement extends SimpleNode {
-    public ASTExecutableStatement(int id) {
-        super(id);
-    }
+  public ASTExecutableStatement(int id) {
+    super(id);
+  }
 
-    public ASTExecutableStatement(RookieParser p, int id) {
-        super(p, id);
-    }
+  public ASTExecutableStatement(RookieParser p, int id) {
+    super(p, id);
+  }
 
-    /**
-     * Accept the visitor.
-     **/
-    public void jjtAccept(RookieParserVisitor visitor, Object data) {
-        visitor.visit(this, data);
-    }
+  /**
+   * Accept the visitor.
+   **/
+  public void jjtAccept(RookieParserVisitor visitor, Object data) {
+    visitor.visit(this, data);
+  }
 }
 /* JavaCC - OriginalChecksum=f91f259b8d4b7c60ede6e1633cd76257 (do not edit this line) */

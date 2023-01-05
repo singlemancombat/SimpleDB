@@ -4,19 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTNumericLiteral extends SimpleNode {
-    public ASTNumericLiteral(int id) {
-        super(id);
-    }
+  public ASTNumericLiteral(int id) {
+    super(id);
+  }
 
-    public ASTNumericLiteral(RookieParser p, int id) {
-        super(p, id);
-    }
+  public ASTNumericLiteral(RookieParser p, int id) {
+    super(p, id);
+  }
 
-    /**
-     * Accept the visitor.
-     **/
-    public void jjtAccept(RookieParserVisitor visitor, Object data) {
-        visitor.visit(this, data);
-    }
+  /**
+   * Accept the visitor.
+   **/
+  public void jjtAccept(RookieParserVisitor visitor, Object data) {
+    visitor.visit(this, data);
+  }
 }
 /* JavaCC - OriginalChecksum=7d84d95460422346245cf69f781fc025 (do not edit this line) */

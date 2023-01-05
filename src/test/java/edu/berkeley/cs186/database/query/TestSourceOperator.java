@@ -12,73 +12,73 @@ import java.util.Iterator;
 import java.util.List;
 
 public class TestSourceOperator extends QueryOperator {
-    private List<Record> records;
-    private String sortedOn;
+  private List<Record> records;
+  private String sortedOn;
 
-    public TestSourceOperator(List<Record> records, Schema schema) {
-        super(OperatorType.SEQ_SCAN);
-        this.records = records;
-        this.setOutputSchema(schema);
-        this.stats = this.estimateStats();
-    }
+  public TestSourceOperator(List<Record> records, Schema schema) {
+    super(OperatorType.SEQ_SCAN);
+    this.records = records;
+    this.setOutputSchema(schema);
+    this.stats = this.estimateStats();
+  }
 
-    public TestSourceOperator(Record[] records, Schema schema) {
-        this(Arrays.asList(records), schema);
-    }
+  public TestSourceOperator(Record[] records, Schema schema) {
+    this(Arrays.asList(records), schema);
+  }
 
-    /**
-     * Constructor for empty source operator
-     *
-     * @param schema schema for this source operator
-     */
-    public TestSourceOperator(Schema schema) {
-        this(Collections.emptyList(), schema);
-    }
+  /**
+   * Constructor for empty source operator
+   *
+   * @param schema schema for this source operator
+   */
+  public TestSourceOperator(Schema schema) {
+    this(Collections.emptyList(), schema);
+  }
 
-    @Override
-    public boolean isSequentialScan() {
-        // We initialize ourselves with OperatorType SEQSCAN, but we technically
-        // shouldn't be treated identically as one.
-        return false;
-    }
+  @Override
+  public boolean isSequentialScan() {
+    // We initialize ourselves with OperatorType SEQSCAN, but we technically
+    // shouldn't be treated identically as one.
+    return false;
+  }
 
-    public void setSortedOn(String s) {
-        this.sortedOn = s;
-    }
+  public void setSortedOn(String s) {
+    this.sortedOn = s;
+  }
 
-    @Override
-    public List<String> sortedBy() {
-        if (this.sortedOn == null) return Collections.emptyList();
-        return Collections.singletonList(this.sortedOn);
-    }
+  @Override
+  public List<String> sortedBy() {
+    if (this.sortedOn == null) return Collections.emptyList();
+    return Collections.singletonList(this.sortedOn);
+  }
 
-    @Override
-    public Iterator<Record> iterator() {
-        return this.records.iterator();
-    }
+  @Override
+  public Iterator<Record> iterator() {
+    return this.records.iterator();
+  }
 
-    @Override
-    protected Schema computeSchema() {
-        return this.outputSchema;
-    }
+  @Override
+  protected Schema computeSchema() {
+    return this.outputSchema;
+  }
 
-    @Override
-    public TableStats estimateStats() {
-        Schema schema = this.computeSchema();
-        int recordsPerPage = Table.computeNumRecordsPerPage(
-                BufferManager.EFFECTIVE_PAGE_SIZE,
-                schema
-        );
-        return new TableStats(schema, recordsPerPage);
-    }
+  @Override
+  public TableStats estimateStats() {
+    Schema schema = this.computeSchema();
+    int recordsPerPage = Table.computeNumRecordsPerPage(
+        BufferManager.EFFECTIVE_PAGE_SIZE,
+        schema
+    );
+    return new TableStats(schema, recordsPerPage);
+  }
 
-    @Override
-    public String str() {
-        return "TestSourceOperator";
-    }
+  @Override
+  public String str() {
+    return "TestSourceOperator";
+  }
 
-    @Override
-    public int estimateIOCost() {
-        return 1;
-    }
+  @Override
+  public int estimateIOCost() {
+    return 1;
+  }
 }

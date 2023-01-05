@@ -7,25 +7,25 @@ import java.util.NoSuchElementException;
  * Always returns false for hasNext().
  */
 public class EmptyBacktrackingIterator<T> implements BacktrackingIterator<T> {
-    @Override
-    public boolean hasNext() {
-        return false;
-    }
+  @Override
+  public boolean hasNext() {
+    return false;
+  }
 
-    @Override
-    public T next() {
-        throw new NoSuchElementException();
-    }
+  @Override
+  public T next() {
+    throw new NoSuchElementException();
+  }
 
-    @Override
-    public void markPrev() {
-    }
+  @Override
+  public void markPrev() {
+  }
 
-    @Override
-    public void markNext() {
-    }
+  @Override
+  public void markNext() {
+  }
 
-    @Override
-    public void reset() {
-    }
+  @Override
+  public void reset() {
+  }
 }

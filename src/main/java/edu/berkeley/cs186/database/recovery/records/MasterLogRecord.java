@@ -9,49 +9,49 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class MasterLogRecord extends LogRecord {
-    public long lastCheckpointLSN;
+  public long lastCheckpointLSN;
 
-    public MasterLogRecord(long lastCheckpointLSN) {
-        super(LogType.MASTER);
-        this.lastCheckpointLSN = lastCheckpointLSN;
-    }
+  public MasterLogRecord(long lastCheckpointLSN) {
+    super(LogType.MASTER);
+    this.lastCheckpointLSN = lastCheckpointLSN;
+  }
 
-    public static Optional<LogRecord> fromBytes(Buffer buf) {
-        return Optional.of(new MasterLogRecord(buf.getLong()));
-    }
+  public static Optional<LogRecord> fromBytes(Buffer buf) {
+    return Optional.of(new MasterLogRecord(buf.getLong()));
+  }
 
-    @Override
-    public byte[] toBytes() {
-        byte[] b = new byte[1 + Long.BYTES];
-        ByteBuffer.wrap(b).put((byte) getType().getValue()).putLong(lastCheckpointLSN);
-        return b;
-    }
+  @Override
+  public byte[] toBytes() {
+    byte[] b = new byte[1 + Long.BYTES];
+    ByteBuffer.wrap(b).put((byte) getType().getValue()).putLong(lastCheckpointLSN);
+    return b;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        if (!super.equals(o)) {
-            return false;
-        }
-        MasterLogRecord that = (MasterLogRecord) o;
-        return lastCheckpointLSN == that.lastCheckpointLSN;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    MasterLogRecord that = (MasterLogRecord) o;
+    return lastCheckpointLSN == that.lastCheckpointLSN;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), lastCheckpointLSN);
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), lastCheckpointLSN);
+  }
 
-    @Override
-    public String toString() {
-        return "MasterLogRecord{" +
-                "lastCheckpointLSN=" + lastCheckpointLSN +
-                ", LSN=" + LSN +
-                '}';
-    }
+  @Override
+  public String toString() {
+    return "MasterLogRecord{" +
+        "lastCheckpointLSN=" + lastCheckpointLSN +
+        ", LSN=" + LSN +
+        '}';
+  }
 }

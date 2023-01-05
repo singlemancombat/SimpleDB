@@ -4,19 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTIntegerLiteral extends SimpleNode {
-    public ASTIntegerLiteral(int id) {
-        super(id);
-    }
+  public ASTIntegerLiteral(int id) {
+    super(id);
+  }
 
-    public ASTIntegerLiteral(RookieParser p, int id) {
-        super(p, id);
-    }
+  public ASTIntegerLiteral(RookieParser p, int id) {
+    super(p, id);
+  }
 
-    /**
-     * Accept the visitor.
-     **/
-    public void jjtAccept(RookieParserVisitor visitor, Object data) {
-        visitor.visit(this, data);
-    }
+  /**
+   * Accept the visitor.
+   **/
+  public void jjtAccept(RookieParserVisitor visitor, Object data) {
+    visitor.visit(this, data);
+  }
 }
 /* JavaCC - OriginalChecksum=119139029fc73359d4f7c1536615de0e (do not edit this line) */

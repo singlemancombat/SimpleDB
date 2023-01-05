@@ -20,61 +20,61 @@ import static org.junit.Assert.assertTrue;
 @Category({Proj4Tests.class, Proj4Part2Tests.class})
 @SuppressWarnings("resource")
 public class TestDatabaseDeadlockPrecheck {
-    private static final String TestDir = "testDatabaseDeadlockPrecheck";
+  private static final String TestDir = "testDatabaseDeadlockPrecheck";
 
-    // 7 second max per method tested.
-    public static long timeout = (long) (7000 * TimeoutScaling.factor);
+  // 7 second max per method tested.
+  public static long timeout = (long) (7000 * TimeoutScaling.factor);
 
-    @Rule
-    public TestRule globalTimeout = new DisableOnDebug(Timeout.millis(timeout));
+  @Rule
+  public TestRule globalTimeout = new DisableOnDebug(Timeout.millis(timeout));
 
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
+  @Rule
+  public TemporaryFolder tempFolder = new TemporaryFolder();
 
-    public static boolean performCheck(TemporaryFolder checkFolder) {
-        // If we are unable to request an X lock after an X lock is requested and released, there is no point
-        // running any of the later tests - every test will block the main thread.
-        final ResourceName name = new ResourceName("database");
+  public static boolean performCheck(TemporaryFolder checkFolder) {
+    // If we are unable to request an X lock after an X lock is requested and released, there is no point
+    // running any of the later tests - every test will block the main thread.
+    final ResourceName name = new ResourceName("database");
 
-        Thread mainRunner = new Thread(() -> {
-            try {
-                File testDir = checkFolder.newFolder(TestDir);
-                String filename = testDir.getAbsolutePath();
-                LoggingLockManager lockManager = new LoggingLockManager();
-                Database database = new Database(filename, 128, lockManager);
-                database.setWorkMem(32);
+    Thread mainRunner = new Thread(() -> {
+      try {
+        File testDir = checkFolder.newFolder(TestDir);
+        String filename = testDir.getAbsolutePath();
+        LoggingLockManager lockManager = new LoggingLockManager();
+        Database database = new Database(filename, 128, lockManager);
+        database.setWorkMem(32);
 
-                Transaction transactionA = database.beginTransaction();
-                lockManager.acquire(transactionA.getTransactionContext(), name, LockType.X);
-                transactionA.close(); // The X lock should be released here
+        Transaction transactionA = database.beginTransaction();
+        lockManager.acquire(transactionA.getTransactionContext(), name, LockType.X);
+        transactionA.close(); // The X lock should be released here
 
-                Transaction transactionB = database.beginTransaction();
-                lockManager.acquire(transactionB.getTransactionContext(), name, LockType.X);
-                transactionB.close();
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
+        Transaction transactionB = database.beginTransaction();
+        lockManager.acquire(transactionB.getTransactionContext(), name, LockType.X);
+        transactionB.close();
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
 
-        mainRunner.start();
-        try {
-            if ((new DisableOnDebug(new TestName()).isDebugging())) {
-                mainRunner.join();
-            } else {
-                mainRunner.join(timeout);
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-
-        return mainRunner.getState() == Thread.State.TERMINATED;
+    mainRunner.start();
+    try {
+      if ((new DisableOnDebug(new TestName()).isDebugging())) {
+        mainRunner.join();
+      } else {
+        mainRunner.join(timeout);
+      }
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
 
-    @Test
-    @Category(PublicTests.class)
-    public void testDeadlock() {
-        assertTrue(performCheck(tempFolder));
-    }
+    return mainRunner.getState() == Thread.State.TERMINATED;
+  }
+
+  @Test
+  @Category(PublicTests.class)
+  public void testDeadlock() {
+    assertTrue(performCheck(tempFolder));
+  }
 }

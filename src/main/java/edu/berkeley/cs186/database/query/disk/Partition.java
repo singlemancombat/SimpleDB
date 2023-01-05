@@ -15,53 +15,53 @@ import java.util.List;
  * minimize I/Os incurred.
  */
 public class Partition implements Iterable<Record> {
-    // The transaction this partition will be used within
-    private TransactionContext transaction;
-    // Under the hood we'll be storing all the records in a temporary table
-    private String tempTableName;
+  // The transaction this partition will be used within
+  private TransactionContext transaction;
+  // Under the hood we'll be storing all the records in a temporary table
+  private String tempTableName;
 
-    public Partition(TransactionContext transaction, Schema s) {
-        this.transaction = transaction;
-        this.tempTableName = transaction.createTempTable(s);
-    }
+  public Partition(TransactionContext transaction, Schema s) {
+    this.transaction = transaction;
+    this.tempTableName = transaction.createTempTable(s);
+  }
 
-    /**
-     * Adds a record to this partition.
-     *
-     * @param record the record to add
-     */
-    public void add(Record record) {
-        this.transaction.addRecord(this.tempTableName, record);
-    }
+  /**
+   * Adds a record to this partition.
+   *
+   * @param record the record to add
+   */
+  public void add(Record record) {
+    this.transaction.addRecord(this.tempTableName, record);
+  }
 
-    /**
-     * Adds a list of records to this partition.
-     *
-     * @param records the records to add
-     */
-    public void addAll(List<Record> records) {
-        for (Record record : records) this.add(record);
-    }
+  /**
+   * Adds a list of records to this partition.
+   *
+   * @param records the records to add
+   */
+  public void addAll(List<Record> records) {
+    for (Record record : records) this.add(record);
+  }
 
-    /**
-     * @return an iterator over the records in this partition
-     */
-    public BacktrackingIterator<Record> iterator() {
-        return this.transaction.getRecordIterator(this.tempTableName);
-    }
+  /**
+   * @return an iterator over the records in this partition
+   */
+  public BacktrackingIterator<Record> iterator() {
+    return this.transaction.getRecordIterator(this.tempTableName);
+  }
 
-    /**
-     * @return returns a sequential scan operator over the temporary table
-     * backing this partition.
-     */
-    public SequentialScanOperator getScanOperator() {
-        return new SequentialScanOperator(this.transaction, this.tempTableName);
-    }
+  /**
+   * @return returns a sequential scan operator over the temporary table
+   * backing this partition.
+   */
+  public SequentialScanOperator getScanOperator() {
+    return new SequentialScanOperator(this.transaction, this.tempTableName);
+  }
 
-    /**
-     * Returns the number of pages used to store records in this partition.
-     */
-    public int getNumPages() {
-        return this.transaction.getNumDataPages(this.tempTableName);
-    }
+  /**
+   * Returns the number of pages used to store records in this partition.
+   */
+  public int getNumPages() {
+    return this.transaction.getNumDataPages(this.tempTableName);
+  }
 }

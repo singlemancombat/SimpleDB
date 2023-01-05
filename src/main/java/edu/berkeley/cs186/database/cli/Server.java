@@ -30,76 +30,76 @@ import java.net.Socket;
  * - `ncat localhost 18600` (For window users. May need to download first)
  */
 public class Server {
-    public static final int DEFAULT_PORT = 18600;
+  public static final int DEFAULT_PORT = 18600;
 
-    private int port;
+  private int port;
 
-    public Server() {
-        this(DEFAULT_PORT);
+  public Server() {
+    this(DEFAULT_PORT);
+  }
+
+  public Server(int port) {
+    this.port = port;
+  }
+
+  public static void main(String[] args) {
+    // Note: you'll probably want to complete Project 4 before
+    // attempting to run this.
+    Database db = new Database("demo", 25, new LockManager());
+
+    // Use the following after completing project 5 (recovery)
+    // Database db = new Database("demo", 25, new LockManager(), new ClockEvictionPolicy(), true);
+
+    Server server = new Server();
+    server.listen(db);
+    db.close();
+  }
+
+  public void listen(Database db) {
+    try (ServerSocket serverSocket = new ServerSocket(this.port)) {
+      while (true) {
+        new ClientThread(serverSocket.accept(), db).start();
+      }
+    } catch (IOException e) {
+      System.err.println("Could not listen on port " + this.port);
+      System.exit(-1);
+    }
+  }
+
+  class ClientThread extends Thread {
+    Socket socket;
+    Database db;
+
+    public ClientThread(Socket socket, Database db) {
+      this.socket = socket;
+      this.db = db;
     }
 
-    public Server(int port) {
-        this.port = port;
-    }
+    public void run() {
+      PrintStream out;
+      InputStream in;
+      try {
+        out = new PrintStream(this.socket.getOutputStream(), true);
+        in = new BufferedInputStream(this.socket.getInputStream());
+      } catch (IOException e) {
+        e.printStackTrace();
+        return;
+      }
 
-    public static void main(String[] args) {
-        // Note: you'll probably want to complete Project 4 before
-        // attempting to run this.
-        Database db = new Database("demo", 25, new LockManager());
-
-        // Use the following after completing project 5 (recovery)
-        // Database db = new Database("demo", 25, new LockManager(), new ClockEvictionPolicy(), true);
-
-        Server server = new Server();
-        server.listen(db);
-        db.close();
-    }
-
-    public void listen(Database db) {
-        try (ServerSocket serverSocket = new ServerSocket(this.port)) {
-            while (true) {
-                new ClientThread(serverSocket.accept(), db).start();
-            }
+      try {
+        CommandLineInterface cli = new CommandLineInterface(db, in, out);
+        cli.run();
+      } catch (Exception e) {
+        // Fatal error: print stack trace on both the server and client
+        e.printStackTrace();
+        e.printStackTrace(out);
+      } finally {
+        try {
+          this.socket.close();
         } catch (IOException e) {
-            System.err.println("Could not listen on port " + this.port);
-            System.exit(-1);
+          throw new UncheckedIOException(e);
         }
+      }
     }
-
-    class ClientThread extends Thread {
-        Socket socket;
-        Database db;
-
-        public ClientThread(Socket socket, Database db) {
-            this.socket = socket;
-            this.db = db;
-        }
-
-        public void run() {
-            PrintStream out;
-            InputStream in;
-            try {
-                out = new PrintStream(this.socket.getOutputStream(), true);
-                in = new BufferedInputStream(this.socket.getInputStream());
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
-
-            try {
-                CommandLineInterface cli = new CommandLineInterface(db, in, out);
-                cli.run();
-            } catch (Exception e) {
-                // Fatal error: print stack trace on both the server and client
-                e.printStackTrace();
-                e.printStackTrace(out);
-            } finally {
-                try {
-                    this.socket.close();
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
-        }
-    }
+  }
 }

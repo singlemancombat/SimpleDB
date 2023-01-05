@@ -4,19 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTDeleteStatement extends SimpleNode {
-    public ASTDeleteStatement(int id) {
-        super(id);
-    }
+  public ASTDeleteStatement(int id) {
+    super(id);
+  }
 
-    public ASTDeleteStatement(RookieParser p, int id) {
-        super(p, id);
-    }
+  public ASTDeleteStatement(RookieParser p, int id) {
+    super(p, id);
+  }
 
-    /**
-     * Accept the visitor.
-     **/
-    public void jjtAccept(RookieParserVisitor visitor, Object data) {
-        visitor.visit(this, data);
-    }
+  /**
+   * Accept the visitor.
+   **/
+  public void jjtAccept(RookieParserVisitor visitor, Object data) {
+    visitor.visit(this, data);
+  }
 }
 /* JavaCC - OriginalChecksum=f3c359144bdc2a074ad711c8bd38978b (do not edit this line) */

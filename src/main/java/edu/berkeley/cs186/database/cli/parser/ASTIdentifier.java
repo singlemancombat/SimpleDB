@@ -4,19 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTIdentifier extends SimpleNode {
-    public ASTIdentifier(int id) {
-        super(id);
-    }
+  public ASTIdentifier(int id) {
+    super(id);
+  }
 
-    public ASTIdentifier(RookieParser p, int id) {
-        super(p, id);
-    }
+  public ASTIdentifier(RookieParser p, int id) {
+    super(p, id);
+  }
 
-    /**
-     * Accept the visitor.
-     **/
-    public void jjtAccept(RookieParserVisitor visitor, Object data) {
-        visitor.visit(this, data);
-    }
+  /**
+   * Accept the visitor.
+   **/
+  public void jjtAccept(RookieParserVisitor visitor, Object data) {
+    visitor.visit(this, data);
+  }
 }
 /* JavaCC - OriginalChecksum=89283e7523912a19b6dfcdfe503680c5 (do not edit this line) */
