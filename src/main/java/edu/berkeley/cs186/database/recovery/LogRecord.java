@@ -15,18 +15,83 @@ import java.util.function.Consumer;
  * An record of the log.
  */
 public abstract class LogRecord {
+    // method called when redo() is called - only used for testing
+    private static Consumer<LogRecord> onRedo = t -> {
+    };
     // LSN of this record, or null if not set - this is not actually
     // stored on disk, and is only set by the log manager for convenience
     protected Long LSN;
     // type of this record
     protected LogType type;
 
-    // method called when redo() is called - only used for testing
-    private static Consumer<LogRecord> onRedo = t -> {};
-
     protected LogRecord(LogType type) {
         this.type = type;
         this.LSN = null;
+    }
+
+    /**
+     * Load a log record from a buffer.
+     *
+     * @param buf Buffer containing a serialized log record.
+     * @return The log record, or Optional.empty() if logType == 0 (marker for no record)
+     * @throws UnsupportedOperationException if log type is not recognized
+     */
+    public static Optional<LogRecord> fromBytes(Buffer buf) {
+        int type;
+        try {
+            type = buf.get();
+        } catch (PageException e) {
+            return Optional.empty();
+        }
+        if (type == 0) {
+            return Optional.empty();
+        }
+        switch (LogType.fromInt(type)) {
+            case MASTER:
+                return MasterLogRecord.fromBytes(buf);
+            case ALLOC_PAGE:
+                return AllocPageLogRecord.fromBytes(buf);
+            case UPDATE_PAGE:
+                return UpdatePageLogRecord.fromBytes(buf);
+            case FREE_PAGE:
+                return FreePageLogRecord.fromBytes(buf);
+            case ALLOC_PART:
+                return AllocPartLogRecord.fromBytes(buf);
+            case FREE_PART:
+                return FreePartLogRecord.fromBytes(buf);
+            case COMMIT_TRANSACTION:
+                return CommitTransactionLogRecord.fromBytes(buf);
+            case ABORT_TRANSACTION:
+                return AbortTransactionLogRecord.fromBytes(buf);
+            case END_TRANSACTION:
+                return EndTransactionLogRecord.fromBytes(buf);
+            case BEGIN_CHECKPOINT:
+                return BeginCheckpointLogRecord.fromBytes(buf);
+            case END_CHECKPOINT:
+                return EndCheckpointLogRecord.fromBytes(buf);
+            case UNDO_ALLOC_PAGE:
+                return UndoAllocPageLogRecord.fromBytes(buf);
+            case UNDO_UPDATE_PAGE:
+                return UndoUpdatePageLogRecord.fromBytes(buf);
+            case UNDO_FREE_PAGE:
+                return UndoFreePageLogRecord.fromBytes(buf);
+            case UNDO_ALLOC_PART:
+                return UndoAllocPartLogRecord.fromBytes(buf);
+            case UNDO_FREE_PART:
+                return UndoFreePartLogRecord.fromBytes(buf);
+            default:
+                throw new UnsupportedOperationException("bad log type");
+        }
+    }
+
+    /**
+     * Set the method called whenever redo() is called on a LogRecord. This
+     * is only to be used for testing.
+     *
+     * @param handler method to be called whenever redo() is called
+     */
+    static void onRedoHandler(Consumer<LogRecord> handler) {
+        onRedo = handler;
     }
 
     /**
@@ -48,6 +113,7 @@ public abstract class LogRecord {
 
     /**
      * Sets the LSN of a record
+     *
      * @param LSN LSN intended to assign to a record
      */
     final void setLSN(Long LSN) {
@@ -56,6 +122,7 @@ public abstract class LogRecord {
 
     /**
      * Gets the transaction number of a log record, if applicable
+     *
      * @return optional instance containing transaction number
      */
     public Optional<Long> getTransNum() {
@@ -64,6 +131,7 @@ public abstract class LogRecord {
 
     /**
      * Gets the LSN of the previous record written by the same transaction
+     *
      * @return optional instance containing prevLSN
      */
     public Optional<Long> getPrevLSN() {
@@ -72,6 +140,7 @@ public abstract class LogRecord {
 
     /**
      * Gets the LSN of record to undo next, if applicable
+     *
      * @return optional instance containing transaction number
      */
     public Optional<Long> getUndoNextLSN() {
@@ -138,6 +207,7 @@ public abstract class LogRecord {
 
     /**
      * Returns a CLR undoing this log record, but does not execute the undo.
+     *
      * @param lastLSN lastLSN for the transaction. This will be used as the
      *                prevLSN of the returned CLR.
      * @return the CLR corresponding to this log record.
@@ -148,9 +218,10 @@ public abstract class LogRecord {
 
     /**
      * Performs the change described by this log record
-     * @param rm the database's recovery manager.
+     *
+     * @param rm  the database's recovery manager.
      * @param dsm the database's disk space manager
-     * @param bm the database's buffer manager
+     * @param bm  the database's buffer manager
      */
     public void redo(RecoveryManager rm, DiskSpaceManager dsm, BufferManager bm) {
         onRedo.accept(this);
@@ -161,80 +232,21 @@ public abstract class LogRecord {
 
     /**
      * Log records are serialized as follows:
-     *
-     *  - a 1-byte integer indicating the type of log record, followed by
-     *  - a variable number of bytes depending on log record (see specific
-     *    LogRecord implementations for details).
+     * <p>
+     * - a 1-byte integer indicating the type of log record, followed by
+     * - a variable number of bytes depending on log record (see specific
+     * LogRecord implementations for details).
      */
     public abstract byte[] toBytes();
 
-    /**
-     * Load a log record from a buffer.
-     * @param buf Buffer containing a serialized log record.
-     * @return The log record, or Optional.empty() if logType == 0 (marker for no record)
-     * @throws UnsupportedOperationException if log type is not recognized
-     */
-    public static Optional<LogRecord> fromBytes(Buffer buf) {
-        int type;
-        try {
-            type = buf.get();
-        } catch (PageException e) {
-            return Optional.empty();
-        }
-        if (type == 0) {
-            return Optional.empty();
-        }
-        switch (LogType.fromInt(type)) {
-        case MASTER:
-            return MasterLogRecord.fromBytes(buf);
-        case ALLOC_PAGE:
-            return AllocPageLogRecord.fromBytes(buf);
-        case UPDATE_PAGE:
-            return UpdatePageLogRecord.fromBytes(buf);
-        case FREE_PAGE:
-            return FreePageLogRecord.fromBytes(buf);
-        case ALLOC_PART:
-            return AllocPartLogRecord.fromBytes(buf);
-        case FREE_PART:
-            return FreePartLogRecord.fromBytes(buf);
-        case COMMIT_TRANSACTION:
-            return CommitTransactionLogRecord.fromBytes(buf);
-        case ABORT_TRANSACTION:
-            return AbortTransactionLogRecord.fromBytes(buf);
-        case END_TRANSACTION:
-            return EndTransactionLogRecord.fromBytes(buf);
-        case BEGIN_CHECKPOINT:
-            return BeginCheckpointLogRecord.fromBytes(buf);
-        case END_CHECKPOINT:
-            return EndCheckpointLogRecord.fromBytes(buf);
-        case UNDO_ALLOC_PAGE:
-            return UndoAllocPageLogRecord.fromBytes(buf);
-        case UNDO_UPDATE_PAGE:
-            return UndoUpdatePageLogRecord.fromBytes(buf);
-        case UNDO_FREE_PAGE:
-            return UndoFreePageLogRecord.fromBytes(buf);
-        case UNDO_ALLOC_PART:
-            return UndoAllocPartLogRecord.fromBytes(buf);
-        case UNDO_FREE_PART:
-            return UndoFreePartLogRecord.fromBytes(buf);
-        default:
-            throw new UnsupportedOperationException("bad log type");
-        }
-    }
-
-    /**
-     * Set the method called whenever redo() is called on a LogRecord. This
-     * is only to be used for testing.
-     * @param handler method to be called whenever redo() is called
-     */
-    static void onRedoHandler(Consumer<LogRecord> handler) {
-        onRedo = handler;
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         LogRecord logRecord = (LogRecord) o;
         return type == logRecord.type;
     }
@@ -247,7 +259,7 @@ public abstract class LogRecord {
     @Override
     public String toString() {
         return "LogRecord{" +
-               "type=" + type +
-               '}';
+                "type=" + type +
+                '}';
     }
 }

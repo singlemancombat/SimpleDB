@@ -234,7 +234,7 @@ public class TestCNF {
 
     public boolean evalCNF(List<Expression> cnf, Schema s, Record r) {
         boolean result = true;
-        for (Expression e: cnf) {
+        for (Expression e : cnf) {
             e.setSchema(s);
             result &= e.evaluate(r).getBool();
         }
@@ -265,16 +265,16 @@ public class TestCNF {
             Expression exp = Expression.fromString(expr);
             exp.setSchema(s);
             List<Expression> cnf = exp.toCNF();
-            for (Expression cnfe: cnf) {
+            for (Expression cnfe : cnf) {
                 cnfe.setSchema(s);
             }
             for (int j = 0; j < 32; j++) {
                 Record r = new Record(
-                    vals[(j >> 0) % 2],
-                    vals[(j >> 1) % 2],
-                    vals[(j >> 2) % 2],
-                    vals[(j >> 3) % 2],
-                    vals[(j >> 4) % 2]
+                        vals[(j >> 0) % 2],
+                        vals[(j >> 1) % 2],
+                        vals[(j >> 2) % 2],
+                        vals[(j >> 3) % 2],
+                        vals[(j >> 4) % 2]
                 );
                 if (exp.evaluate(r).getBool() != evalCNF(cnf, s, r)) {
                     throw new AssertionError("Failed with expression: " + expr + " and CNF: " + cnf);

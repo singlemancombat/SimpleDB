@@ -26,6 +26,13 @@ public class AllocPartLogRecord extends LogRecord {
         this.prevLSN = prevLSN;
     }
 
+    public static Optional<LogRecord> fromBytes(Buffer buf) {
+        long transNum = buf.getLong();
+        int partNum = buf.getInt();
+        long prevLSN = buf.getLong();
+        return Optional.of(new AllocPartLogRecord(transNum, partNum, prevLSN));
+    }
+
     @Override
     public Optional<Long> getTransNum() {
         return Optional.of(transNum);
@@ -71,29 +78,28 @@ public class AllocPartLogRecord extends LogRecord {
     public byte[] toBytes() {
         byte[] b = new byte[1 + Long.BYTES + Integer.BYTES + Long.BYTES];
         ByteBuffer.wrap(b)
-        .put((byte) getType().getValue())
-        .putLong(transNum)
-        .putInt(partNum)
-        .putLong(prevLSN);
+                .put((byte) getType().getValue())
+                .putLong(transNum)
+                .putInt(partNum)
+                .putLong(prevLSN);
         return b;
-    }
-
-    public static Optional<LogRecord> fromBytes(Buffer buf) {
-        long transNum = buf.getLong();
-        int partNum = buf.getInt();
-        long prevLSN = buf.getLong();
-        return Optional.of(new AllocPartLogRecord(transNum, partNum, prevLSN));
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         AllocPartLogRecord that = (AllocPartLogRecord) o;
         return transNum == that.transNum &&
-               partNum == that.partNum &&
-               prevLSN == that.prevLSN;
+                partNum == that.partNum &&
+                prevLSN == that.prevLSN;
     }
 
     @Override
@@ -104,10 +110,10 @@ public class AllocPartLogRecord extends LogRecord {
     @Override
     public String toString() {
         return "AllocPartLogRecord{" +
-               "transNum=" + transNum +
-               ", partNum=" + partNum +
-               ", prevLSN=" + prevLSN +
-               ", LSN=" + LSN +
-               '}';
+                "transNum=" + transNum +
+                ", partNum=" + partNum +
+                ", prevLSN=" + prevLSN +
+                ", LSN=" + LSN +
+                '}';
     }
 }

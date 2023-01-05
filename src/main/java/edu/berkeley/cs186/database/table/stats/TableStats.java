@@ -18,32 +18,32 @@ import java.util.List;
  * of pages used by the table, and a histogram on every column of the table.
  * For example, we can construct a TableStats and add/remove records from
  * it like this:
- *
- *   // Create a TableStats object for a table with columns (x: int, y: float).
- *   List<String> fieldNames = Arrays.asList("x", "y");
- *   List<Type> fieldTypes = Arrays.asList(Type.intType(), Type.floatType());
- *   Schema schema = new Schema(fieldNames, fieldTypes);
- *   TableStats stats = new TableStats(schema);
- *
- *   // Add and remove tuples from the stats.
- *   IntDataBox x1 = new IntDataBox(1);
- *   FloatDataBox y1 = new FloatDataBox(1);
- *   Record r1 = new Record(schema, Arrays.asList(x1, y1));
- *
- *   IntDataBox x2 = new IntDataBox(1);
- *   FloatDataBox y2 = new FloatDataBox(1);
- *   Record r2 = new Record(schema, Arrays.asList(x2, y2));
- *
- *   stats.addRecord(r1);
- *   stats.addRecord(r2);
- *   stats.removeRecord(r1);
- *
+ * <p>
+ * // Create a TableStats object for a table with columns (x: int, y: float).
+ * List<String> fieldNames = Arrays.asList("x", "y");
+ * List<Type> fieldTypes = Arrays.asList(Type.intType(), Type.floatType());
+ * Schema schema = new Schema(fieldNames, fieldTypes);
+ * TableStats stats = new TableStats(schema);
+ * <p>
+ * // Add and remove tuples from the stats.
+ * IntDataBox x1 = new IntDataBox(1);
+ * FloatDataBox y1 = new FloatDataBox(1);
+ * Record r1 = new Record(schema, Arrays.asList(x1, y1));
+ * <p>
+ * IntDataBox x2 = new IntDataBox(1);
+ * FloatDataBox y2 = new FloatDataBox(1);
+ * Record r2 = new Record(schema, Arrays.asList(x2, y2));
+ * <p>
+ * stats.addRecord(r1);
+ * stats.addRecord(r2);
+ * stats.removeRecord(r1);
+ * <p>
  * Later, we can use the statistics maintained by a TableStats object for
  * things like query optimization:
- *
- *   stats.getNumRecords(); // Estimated number of records.
- *   stats.getNumPages();   // Estimated number of pages.
- *   stats.getHistograms(); // Histograms on each column.
+ * <p>
+ * stats.getNumRecords(); // Estimated number of records.
+ * stats.getNumPages();   // Estimated number of pages.
+ * stats.getHistograms(); // Histograms on each column.
  */
 public class TableStats {
     private Schema schema;
@@ -51,7 +51,9 @@ public class TableStats {
     private int numRecords;
     private List<Histogram> histograms;
 
-    /** Construct a TableStats for an empty table with schema `schema`. */
+    /**
+     * Construct a TableStats for an empty table with schema `schema`.
+     */
     public TableStats(Schema schema, int numRecordsPerPage) {
         this.schema = schema;
         this.numRecordsPerPage = numRecordsPerPage;
@@ -94,7 +96,9 @@ public class TableStats {
     }
 
     // Accessors /////////////////////////////////////////////////////////////////
-    public Schema getSchema() { return schema; }
+    public Schema getSchema() {
+        return schema;
+    }
 
     public int getNumRecords() {
         return numRecords;
@@ -114,43 +118,44 @@ public class TableStats {
     }
 
     // Copiers ///////////////////////////////////////////////////////////////////
+
     /**
      * Estimates the table statistics for the table that would be produced after
      * filtering column `i` with `predicate` and `value`. For simplicity, we
      * assume that columns are completeley uncorrelated. For example, imagine the
      * following table statistics for a table T(x:int, y:int).
-     *
-     *   numRecords = 100
-     *   numPages = 2
-     *               Histogram x                         Histogram y
-     *               ===========                         ===========
-     *   60 |                       50       60 |
-     *   50 |        40           +----+     50 |
-     *   40 |      +----+         |    |     40 |
-     *   30 |      |    |         |    |     30 |   20   20   20   20   20
-     *   20 |   10 |    |         |    |     20 | +----+----+----+----+----+
-     *   10 | +----+    | 00   00 |    |     10 | |    |    |    |    |    |
-     *   00 | |    |    +----+----+    |     00 | |    |    |    |    |    |
-     *       ----------------------------        ----------------------------
-     *        0    1    2    3    4    5          0    1    2    3    4    5
-     *              0    0    0    0    0               0    0    0    0    0
-     *
+     * <p>
+     * numRecords = 100
+     * numPages = 2
+     * Histogram x                         Histogram y
+     * ===========                         ===========
+     * 60 |                       50       60 |
+     * 50 |        40           +----+     50 |
+     * 40 |      +----+         |    |     40 |
+     * 30 |      |    |         |    |     30 |   20   20   20   20   20
+     * 20 |   10 |    |         |    |     20 | +----+----+----+----+----+
+     * 10 | +----+    | 00   00 |    |     10 | |    |    |    |    |    |
+     * 00 | |    |    +----+----+    |     00 | |    |    |    |    |    |
+     * ----------------------------        ----------------------------
+     * 0    1    2    3    4    5          0    1    2    3    4    5
+     * 0    0    0    0    0               0    0    0    0    0
+     * <p>
      * If we apply the filter `x < 20`, we estimate that we would have the
      * following table statistics.
-     *
-     *   numRecords = 50
-     *   numPages = 1
-     *               Histogram x                         Histogram y
-     *               ===========                         ===========
-     *   50 |        40                      50 |
-     *   40 |      +----+                    40 |
-     *   30 |      |    |                    30 |
-     *   20 |   10 |    |                    20 |   10   10   10   10   10
-     *   10 | +----+    | 00   00   00       10 | +----+----+----+----+----+
-     *   00 | |    |    +----+----+----+     00 | |    |    |    |    |    |
-     *       ----------------------------        ----------------------------
-     *        0    1    2    3    4    5          0    1    2    3    4    5
-     *              0    0    0    0    0               0    0    0    0    0
+     * <p>
+     * numRecords = 50
+     * numPages = 1
+     * Histogram x                         Histogram y
+     * ===========                         ===========
+     * 50 |        40                      50 |
+     * 40 |      +----+                    40 |
+     * 30 |      |    |                    30 |
+     * 20 |   10 |    |                    20 |   10   10   10   10   10
+     * 10 | +----+    | 00   00   00       10 | +----+----+----+----+----+
+     * 00 | |    |    +----+----+----+     00 | |    |    |    |    |    |
+     * ----------------------------        ----------------------------
+     * 0    1    2    3    4    5          0    1    2    3    4    5
+     * 0    0    0    0    0               0    0    0    0    0
      */
     public TableStats copyWithPredicate(int column,
                                         PredicateOperator predicate,
@@ -175,7 +180,7 @@ public class TableStats {
      * Creates a new TableStats which is the statistics for the table
      * that results from this TableStats joined with the given TableStats.
      *
-     * @param leftIndex the index of the join column for this
+     * @param leftIndex  the index of the join column for this
      * @param rightStats the TableStats of the right table to be joined
      * @param rightIndex the index of the join column for the right table
      * @return new TableStats based off of this and params
@@ -201,7 +206,7 @@ public class TableStats {
 
         float leftReductionFactor = leftNumDistinct * reductionFactor;
         float rightReductionFactor = rightNumDistinct * reductionFactor;
-        int outputSize = (int)(reductionFactor * inputSize);
+        int outputSize = (int) (reductionFactor * inputSize);
 
         for (Histogram leftHistogram : this.histograms) {
             copyHistograms.add(leftHistogram.copyWithJoin(outputSize, leftReductionFactor));

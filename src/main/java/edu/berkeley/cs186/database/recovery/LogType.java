@@ -37,15 +37,15 @@ public enum LogType {
 
     private static LogType[] values = LogType.values();
 
-    public int getValue() {
-        return ordinal() + 1;
-    }
-
     public static LogType fromInt(int x) {
         if (x < 1 || x > values.length) {
             String err = String.format("Unknown TypeId ordinal %d.", x);
             throw new IllegalArgumentException(err);
         }
         return values[x - 1];
+    }
+
+    public int getValue() {
+        return ordinal() + 1;
     }
 }

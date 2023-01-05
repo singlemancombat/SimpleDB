@@ -15,23 +15,23 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class UpdatePageLogRecord extends LogRecord {
-    private long transNum; // transaction that updated the page
-    private long pageNum; // page that was updated
-    private long prevLSN; // previous log's LSN
     public short offset; // position of first changed byte
     public byte[] before; // old bytes (before update)
     public byte[] after; // new bytes (after update)
+    private long transNum; // transaction that updated the page
+    private long pageNum; // page that was updated
+    private long prevLSN; // previous log's LSN
 
     /**
      * @param transNum transaction number of transaction that updated the page
-     * @param pageNum the page that was updated
-     * @param prevLSN previous log's LSNS
-     * @param offset position of first changed byte
-     * @param before old bytes (before update)
-     * @param after new bytes (after update)
+     * @param pageNum  the page that was updated
+     * @param prevLSN  previous log's LSNS
+     * @param offset   position of first changed byte
+     * @param before   old bytes (before update)
+     * @param after    new bytes (after update)
      */
     public UpdatePageLogRecord(long transNum, long pageNum, long prevLSN, short offset, byte[] before,
-                        byte[] after) {
+                               byte[] after) {
         super(LogType.UPDATE_PAGE);
         this.transNum = transNum;
         this.pageNum = pageNum;
@@ -39,6 +39,17 @@ public class UpdatePageLogRecord extends LogRecord {
         this.offset = offset;
         this.before = before;
         this.after = after;
+    }
+
+    public static Optional<LogRecord> fromBytes(Buffer buf) {
+        long transNum = buf.getLong();
+        long pageNum = buf.getLong();
+        long prevLSN = buf.getLong();
+        short offset = buf.getShort();
+        byte[] before = new byte[buf.getShort()];
+        byte[] after = new byte[buf.getShort()];
+        buf.get(before).get(after);
+        return Optional.of(new UpdatePageLogRecord(transNum, pageNum, prevLSN, offset, before, after));
     }
 
     @Override
@@ -57,10 +68,14 @@ public class UpdatePageLogRecord extends LogRecord {
     }
 
     @Override
-    public boolean isUndoable() { return true; }
+    public boolean isUndoable() {
+        return true;
+    }
 
     @Override
-    public boolean isRedoable() { return true; }
+    public boolean isRedoable() {
+        return true;
+    }
 
     @Override
     public LogRecord undo(long lastLSN) {
@@ -87,41 +102,36 @@ public class UpdatePageLogRecord extends LogRecord {
     public byte[] toBytes() {
         byte[] b = new byte[31 + before.length + after.length];
         ByteBuffer.wrap(b)
-        .put((byte) getType().getValue())
-        .putLong(transNum)
-        .putLong(pageNum)
-        .putLong(prevLSN)
-        .putShort(offset)
-        .putShort((short) before.length)
-        .putShort((short) after.length)
-        .put(before)
-        .put(after);
+                .put((byte) getType().getValue())
+                .putLong(transNum)
+                .putLong(pageNum)
+                .putLong(prevLSN)
+                .putShort(offset)
+                .putShort((short) before.length)
+                .putShort((short) after.length)
+                .put(before)
+                .put(after);
         return b;
-    }
-
-    public static Optional<LogRecord> fromBytes(Buffer buf) {
-        long transNum = buf.getLong();
-        long pageNum = buf.getLong();
-        long prevLSN = buf.getLong();
-        short offset = buf.getShort();
-        byte[] before = new byte[buf.getShort()];
-        byte[] after = new byte[buf.getShort()];
-        buf.get(before).get(after);
-        return Optional.of(new UpdatePageLogRecord(transNum, pageNum, prevLSN, offset, before, after));
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         UpdatePageLogRecord that = (UpdatePageLogRecord) o;
         return transNum == that.transNum &&
-               pageNum == that.pageNum &&
-               offset == that.offset &&
-               prevLSN == that.prevLSN &&
-               Arrays.equals(before, that.before) &&
-               Arrays.equals(after, that.after);
+                pageNum == that.pageNum &&
+                offset == that.offset &&
+                prevLSN == that.prevLSN &&
+                Arrays.equals(before, that.before) &&
+                Arrays.equals(after, that.after);
     }
 
     @Override
@@ -135,13 +145,13 @@ public class UpdatePageLogRecord extends LogRecord {
     @Override
     public String toString() {
         return "UpdatePageLogRecord{" +
-               "transNum=" + transNum +
-               ", pageNum=" + pageNum +
-               ", offset=" + offset +
-               ", before=" + Arrays.toString(before) +
-               ", after=" + Arrays.toString(after) +
-               ", prevLSN=" + prevLSN +
-               ", LSN=" + LSN +
-               '}';
+                "transNum=" + transNum +
+                ", pageNum=" + pageNum +
+                ", offset=" + offset +
+                ", before=" + Arrays.toString(before) +
+                ", after=" + Arrays.toString(after) +
+                ", prevLSN=" + prevLSN +
+                ", LSN=" + LSN +
+                '}';
     }
 }

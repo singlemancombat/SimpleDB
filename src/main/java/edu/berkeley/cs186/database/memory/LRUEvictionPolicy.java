@@ -8,22 +8,6 @@ public class LRUEvictionPolicy implements EvictionPolicy {
     private Tag listHead;
     private Tag listTail;
 
-    // Doubly-linked list between frames, in order of least to most
-    // recently used.
-    private class Tag {
-        Tag prev = null;
-        Tag next = null;
-        BufferFrame cur = null;
-
-        @Override
-        public String toString() {
-            String sprev = (prev == null || prev.cur == null) ? "null" : prev.cur.toString();
-            String snext = (next == null || next.cur == null) ? "null" : next.cur.toString();
-            String scur = cur == null ? "null" : cur.toString();
-            return scur + " (prev=" + sprev + ", next=" + snext + ")";
-        }
-    }
-
     public LRUEvictionPolicy() {
         this.listHead = new Tag();
         this.listTail = new Tag();
@@ -33,6 +17,7 @@ public class LRUEvictionPolicy implements EvictionPolicy {
 
     /**
      * Called to initiaize a new buffer frame.
+     *
      * @param frame new frame to be initialized
      */
     @Override
@@ -48,6 +33,7 @@ public class LRUEvictionPolicy implements EvictionPolicy {
 
     /**
      * Called when a frame is hit.
+     *
      * @param frame Frame object that is being read from/written to
      */
     @Override
@@ -63,6 +49,7 @@ public class LRUEvictionPolicy implements EvictionPolicy {
 
     /**
      * Called when a frame needs to be evicted.
+     *
      * @param frames Array of all frames (same length every call)
      * @return index of frame to be evicted
      * @throws IllegalStateException if everything is pinned
@@ -83,6 +70,7 @@ public class LRUEvictionPolicy implements EvictionPolicy {
      * Called when a frame is removed, either because it
      * was returned from a call to evict, or because of other constraints
      * (e.g. if the page is deleted on disk).
+     *
      * @param frame frame being removed
      */
     @Override
@@ -91,5 +79,21 @@ public class LRUEvictionPolicy implements EvictionPolicy {
         frameTag.prev.next = frameTag.next;
         frameTag.next.prev = frameTag.prev;
         frameTag.prev = frameTag.next = frameTag;
+    }
+
+    // Doubly-linked list between frames, in order of least to most
+    // recently used.
+    private class Tag {
+        Tag prev = null;
+        Tag next = null;
+        BufferFrame cur = null;
+
+        @Override
+        public String toString() {
+            String sprev = (prev == null || prev.cur == null) ? "null" : prev.cur.toString();
+            String snext = (next == null || next.cur == null) ? "null" : next.cur.toString();
+            String scur = cur == null ? "null" : cur.toString();
+            return scur + " (prev=" + sprev + ", next=" + snext + ")";
+        }
     }
 }

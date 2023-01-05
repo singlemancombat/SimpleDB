@@ -6,7 +6,7 @@ import java.util.Iterator;
  * A BacktrackingIterator supports marking a point in iteration, and resetting the
  * state of the iterator back to that mark. For example, if you had a backtracking
  * iterator with the values [1,2,3]:
- *
+ * <p>
  * BackTrackingIterator<Integer> iter = new BackTrackingIteratorImplementation();
  * iter.next();     // returns 1
  * iter.next();     // returns 2
@@ -27,7 +27,7 @@ public interface BacktrackingIterator<T> extends Iterator<T> {
     /**
      * markPrev() marks the last returned value of the iterator, which is the last
      * returned value of next().
-     *
+     * <p>
      * Calling markPrev() on an iterator that has not yielded a record yet,
      * or that has not yielded a record since the last reset() call does nothing.
      */
@@ -36,7 +36,7 @@ public interface BacktrackingIterator<T> extends Iterator<T> {
     /**
      * markNext() marks the next returned value of the iterator, which is the
      * value returned by the next call of next().
-     *
+     * <p>
      * Calling markNext() on an iterator that has no records left does nothing.
      */
     void markNext();

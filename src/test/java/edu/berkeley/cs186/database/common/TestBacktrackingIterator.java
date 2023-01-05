@@ -90,7 +90,7 @@ public class TestBacktrackingIterator {
                         run[i] = start + i;
                     }
                     iterables.add(new IntegerArrayBackTrackingIterable(run));
-                    start +=  runLen;
+                    start += runLen;
                 } else {
                     // Toss in a few empty iterables
                     iterables.add(new IntegerArrayBackTrackingIterable(new Integer[0]));

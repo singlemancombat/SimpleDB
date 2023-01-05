@@ -93,7 +93,7 @@ public class DummyTransactionContext extends TransactionContext {
     }
 
     @Override
-    public RecordId deleteRecord(String tableName, RecordId rid)  {
+    public RecordId deleteRecord(String tableName, RecordId rid) {
         throw new UnsupportedOperationException("dummy transaction cannot do this");
     }
 
@@ -108,7 +108,7 @@ public class DummyTransactionContext extends TransactionContext {
     }
 
     @Override
-    public RecordId updateRecord(String tableName, RecordId rid, Record record)  {
+    public RecordId updateRecord(String tableName, RecordId rid, Record record) {
         throw new UnsupportedOperationException("dummy transaction cannot do this");
     }
 
@@ -189,7 +189,8 @@ public class DummyTransactionContext extends TransactionContext {
     }
 
     @Override
-    public void close() {}
+    public void close() {
+    }
 
     @Override
     public String toString() {

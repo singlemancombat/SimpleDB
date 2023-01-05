@@ -13,6 +13,10 @@ public class BeginCheckpointLogRecord extends LogRecord {
         super(LogType.BEGIN_CHECKPOINT);
     }
 
+    public static Optional<LogRecord> fromBytes(Buffer buf) {
+        return Optional.of(new BeginCheckpointLogRecord());
+    }
+
     @Override
     public byte[] toBytes() {
         byte[] b = new byte[1];
@@ -20,15 +24,17 @@ public class BeginCheckpointLogRecord extends LogRecord {
         return b;
     }
 
-    public static Optional<LogRecord> fromBytes(Buffer buf) {
-        return Optional.of(new BeginCheckpointLogRecord());
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         return true; // Begin Checkpoints are indistinguishable from each other
     }
 
@@ -40,7 +46,7 @@ public class BeginCheckpointLogRecord extends LogRecord {
     @Override
     public String toString() {
         return "BeginCheckpointLogRecord{" +
-               ", LSN=" + LSN +
-               '}';
+                ", LSN=" + LSN +
+                '}';
     }
 }

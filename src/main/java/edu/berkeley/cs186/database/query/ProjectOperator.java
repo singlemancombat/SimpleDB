@@ -59,7 +59,7 @@ public class ProjectOperator extends QueryOperator {
         this.outputSchema = schema;
 
         Set<Integer> groupByIndices = new HashSet<>();
-        for (String colName: groupByColumns) {
+        for (String colName : groupByColumns) {
             groupByIndices.add(this.sourceSchema.findField(colName));
         }
         boolean hasAgg = false;
@@ -70,7 +70,7 @@ public class ProjectOperator extends QueryOperator {
 
         for (int i = 0; i < expressions.size(); i++) {
             Set<Integer> dependencyIndices = new HashSet<>();
-            for (String colName: expressions.get(i).getDependencies()) {
+            for (String colName : expressions.get(i).getDependencies()) {
                 dependencyIndices.add(this.sourceSchema.findField(colName));
             }
             if (!expressions.get(i).hasAgg()) {
@@ -87,7 +87,9 @@ public class ProjectOperator extends QueryOperator {
     }
 
     @Override
-    public boolean isProject() { return true; }
+    public boolean isProject() {
+        return true;
+    }
 
     @Override
     protected Schema computeSchema() {
@@ -122,7 +124,7 @@ public class ProjectOperator extends QueryOperator {
 
         private ProjectIterator() {
             this.sourceIterator = ProjectOperator.this.getSource().iterator();
-            for (Expression func: expressions) {
+            for (Expression func : expressions) {
                 this.hasAgg |= func.hasAgg();
             }
         }
@@ -136,9 +138,9 @@ public class ProjectOperator extends QueryOperator {
         public Record next() {
             if (!this.hasNext()) throw new NoSuchElementException();
             Record curr = this.sourceIterator.next();
-            if (!this.hasAgg && groupByColumns.size() == 0 ) {
+            if (!this.hasAgg && groupByColumns.size() == 0) {
                 List<DataBox> newValues = new ArrayList<>();
-                for (Expression f: expressions) {
+                for (Expression f : expressions) {
                     newValues.add(f.evaluate(curr));
                 }
                 return new Record(newValues);
@@ -147,7 +149,7 @@ public class ProjectOperator extends QueryOperator {
             // Everything after here is to handle aggregation
             Record base = curr; // We'll draw the GROUP BY values from here
             while (curr != GroupByOperator.MARKER) {
-                for (Expression dataFunction: expressions) {
+                for (Expression dataFunction : expressions) {
                     if (dataFunction.hasAgg()) dataFunction.update(curr);
                 }
                 if (!sourceIterator.hasNext()) break;
@@ -156,7 +158,7 @@ public class ProjectOperator extends QueryOperator {
 
             // Figure out where to get each value in the output record from
             List<DataBox> values = new ArrayList<>();
-            for (Expression dataFunction: expressions) {
+            for (Expression dataFunction : expressions) {
                 if (dataFunction.hasAgg()) {
                     values.add(dataFunction.evaluate(base));
                     dataFunction.reset();

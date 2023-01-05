@@ -4,17 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTFunctionCallExpression extends SimpleNode {
-  public ASTFunctionCallExpression(int id) {
-    super(id);
-  }
+    public ASTFunctionCallExpression(int id) {
+        super(id);
+    }
 
-  public ASTFunctionCallExpression(RookieParser p, int id) {
-    super(p, id);
-  }
+    public ASTFunctionCallExpression(RookieParser p, int id) {
+        super(p, id);
+    }
 
-  /** Accept the visitor. **/
-  public void jjtAccept(RookieParserVisitor visitor, Object data) {
-    visitor.visit(this, data);
-  }
+    /**
+     * Accept the visitor.
+     **/
+    public void jjtAccept(RookieParserVisitor visitor, Object data) {
+        visitor.visit(this, data);
+    }
 }
 /* JavaCC - OriginalChecksum=0c5ef5f41c059bb5997e66dcf892fa2c (do not edit this line) */

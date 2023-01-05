@@ -4,17 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTSelectClause extends SimpleNode {
-  public ASTSelectClause(int id) {
-    super(id);
-  }
+    public ASTSelectClause(int id) {
+        super(id);
+    }
 
-  public ASTSelectClause(RookieParser p, int id) {
-    super(p, id);
-  }
+    public ASTSelectClause(RookieParser p, int id) {
+        super(p, id);
+    }
 
-  /** Accept the visitor. **/
-  public void jjtAccept(RookieParserVisitor visitor, Object data) {
-    visitor.visit(this, data);
-  }
+    /**
+     * Accept the visitor.
+     **/
+    public void jjtAccept(RookieParserVisitor visitor, Object data) {
+        visitor.visit(this, data);
+    }
 }
 /* JavaCC - OriginalChecksum=2883af4600a354501448dee4f005cc99 (do not edit this line) */

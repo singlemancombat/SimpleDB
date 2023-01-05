@@ -5,11 +5,10 @@ package edu.berkeley.cs186.database.memory;
  * bit to each frame, and running the algorithm.
  */
 public class ClockEvictionPolicy implements EvictionPolicy {
-    private int arm;
-
     private static final Object ACTIVE = true;
     // null not false, because default tag (before this class ever sees a frame) is null.
     private static final Object INACTIVE = null;
+    private int arm;
 
     public ClockEvictionPolicy() {
         this.arm = 0;
@@ -17,13 +16,16 @@ public class ClockEvictionPolicy implements EvictionPolicy {
 
     /**
      * Called to initiaize a new buffer frame.
+     *
      * @param frame new frame to be initialized
      */
     @Override
-    public void init(BufferFrame frame) {}
+    public void init(BufferFrame frame) {
+    }
 
     /**
      * Called when a frame is hit.
+     *
      * @param frame Frame object that is being read from/written to
      */
     @Override
@@ -33,6 +35,7 @@ public class ClockEvictionPolicy implements EvictionPolicy {
 
     /**
      * Called when a frame needs to be evicted.
+     *
      * @param frames Array of all frames (same length every call)
      * @return index of frame to be evicted
      * @throws IllegalStateException if everything is pinned
@@ -62,8 +65,10 @@ public class ClockEvictionPolicy implements EvictionPolicy {
      * Called when a frame is removed, either because it
      * was returned from a call to evict, or because of other constraints
      * (e.g. if the page is deleted on disk).
+     *
      * @param frame frame being removed
      */
     @Override
-    public void cleanup(BufferFrame frame) {}
+    public void cleanup(BufferFrame frame) {
+    }
 }

@@ -4,7 +4,9 @@ import edu.berkeley.cs186.database.databox.Type;
 import edu.berkeley.cs186.database.databox.TypeId;
 import edu.berkeley.cs186.database.table.Record;
 
-/** Metadata about a B+ tree. */
+/**
+ * Metadata about a B+ tree.
+ */
 public class BPlusTreeMetadata {
     // Table for which this B+ tree is for
     private final String tableName;

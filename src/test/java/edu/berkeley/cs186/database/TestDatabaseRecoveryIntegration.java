@@ -31,18 +31,17 @@ import static org.junit.Assert.*;
  */
 public class TestDatabaseRecoveryIntegration {
     private static final String TestDir = "testDatabaseRecovery";
+    // 10 second max per method tested.
+    public static long timeout = (long) (10000 * TimeoutScaling.factor);
+    @ClassRule
+    public static TemporaryFolder checkFolder = new TemporaryFolder();
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+    @Rule
+    public TestRule globalTimeout = new DisableOnDebug(Timeout.millis(timeout));
     private Database db;
     private LockManager lockManager;
     private String filename;
-
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
-
-    // 10 second max per method tested.
-    public static long timeout = (long) (10000 * TimeoutScaling.factor);
-
-    @Rule
-    public TestRule globalTimeout = new DisableOnDebug(Timeout.millis(timeout));
 
     private void reloadDatabase(boolean closeOld) {
         if (closeOld && this.db != null) {
@@ -70,9 +69,6 @@ public class TestDatabaseRecoveryIntegration {
         reloadDatabase(true);
     }
 
-    @ClassRule
-    public static  TemporaryFolder checkFolder = new TemporaryFolder();
-
     @Before
     public void beforeEach() throws Exception {
         File testDir = tempFolder.newFolder(TestDir);
@@ -96,7 +92,7 @@ public class TestDatabaseRecoveryIntegration {
         List<Record> newRecords = new ArrayList<>();
 
         // Do a full scan of `Students`
-        try (Transaction t= db.beginTransaction()) {
+        try (Transaction t = db.beginTransaction()) {
             Iterator<Record> records = t.query("Students").execute();
             while (records.hasNext()) oldRecords.add(records.next());
 
@@ -111,7 +107,7 @@ public class TestDatabaseRecoveryIntegration {
             t.rollback();
         }
 
-        try (Transaction t= db.beginTransaction()) {
+        try (Transaction t = db.beginTransaction()) {
             Iterator<Record> records = t.query("Students").execute();
             while (records.hasNext()) newRecords.add(records.next());
         }
@@ -130,7 +126,7 @@ public class TestDatabaseRecoveryIntegration {
         List<Record> newRecords = new ArrayList<>();
 
         // Do a full scan of each table
-        try (Transaction t= db.beginTransaction()) {
+        try (Transaction t = db.beginTransaction()) {
             for (int i = 0; i < tableNames.length; ++i) {
                 Iterator<Record> records = t.query(tableNames[i]).execute();
                 while (records.hasNext()) oldRecords.add(records.next());
@@ -149,7 +145,7 @@ public class TestDatabaseRecoveryIntegration {
             t.rollback();
         }
 
-        try (Transaction t= db.beginTransaction()) {
+        try (Transaction t = db.beginTransaction()) {
             for (int i = 0; i < tableNames.length; ++i) {
                 Iterator<Record> records = t.query(tableNames[i]).execute();
                 while (records.hasNext()) newRecords.add(records.next());
@@ -303,7 +299,7 @@ public class TestDatabaseRecoveryIntegration {
         List<Record> newRecords = new ArrayList<>();
 
         // Do a full scan of `Enrollments`
-        try (Transaction t= db.beginTransaction()) {
+        try (Transaction t = db.beginTransaction()) {
             Iterator<Record> records = t.query("Enrollments").execute();
             while (records.hasNext()) oldRecords.add(records.next());
 
@@ -324,7 +320,7 @@ public class TestDatabaseRecoveryIntegration {
             assertEquals(oldRecords, afterRollbackRecords);
         }
 
-        try (Transaction t= db.beginTransaction()) {
+        try (Transaction t = db.beginTransaction()) {
             // `DROP TABLE Students` wasn't rolled back, should still fail when
             // attempting to query.
             try {
@@ -409,17 +405,17 @@ public class TestDatabaseRecoveryIntegration {
     @Test
     public void testRebootCreateTable() {
         // Creates tables, commits, and then reboots
-        try(Transaction t1 = db.beginTransaction()) {
+        try (Transaction t1 = db.beginTransaction()) {
             for (int i = 0; i < 3; i++) {
                 t1.createTable(new Schema().add("int", Type.intType()), "ints" + i);
                 for (int j = 0; j < 1024 * 5; j++) {
-                    t1.insert("ints"+i, j);
+                    t1.insert("ints" + i, j);
                 }
             }
         }
         Database old = this.db;
         reloadDatabase(false);
-        try(Transaction t2 = db.beginTransaction()) {
+        try (Transaction t2 = db.beginTransaction()) {
             for (int i = 0; i < 3; i++) {
                 Iterator<Record> records = t2.query("ints" + i).execute();
                 assertTrue(records.next().getValue(0).getInt() == 0);
@@ -431,18 +427,18 @@ public class TestDatabaseRecoveryIntegration {
     @Test
     public void testRebootCreateAndDropTable() {
         // Creates tables, commits, and then reboots
-        try(Transaction t1 = db.beginTransaction()) {
+        try (Transaction t1 = db.beginTransaction()) {
             for (int i = 0; i < 3; i++) {
                 t1.createTable(new Schema().add("int", Type.intType()), "ints" + i);
                 for (int j = 0; j < 1024 * 5; j++) {
-                    t1.insert("ints"+i, j);
+                    t1.insert("ints" + i, j);
                 }
             }
             t1.dropTable("ints0");
         }
         Database old = this.db;
         reloadDatabase(false);
-        try(Transaction t2 = db.beginTransaction()) {
+        try (Transaction t2 = db.beginTransaction()) {
             for (int i = 1; i < 3; i++) {
                 Iterator<Record> records = t2.query("ints" + i).execute();
                 assertTrue(records.next().getValue(0).getInt() == 0);

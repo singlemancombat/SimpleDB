@@ -1,7 +1,6 @@
 package edu.berkeley.cs186.database.index;
 
 import edu.berkeley.cs186.database.TimeoutScaling;
-import edu.berkeley.cs186.database.categories.HiddenTests;
 import edu.berkeley.cs186.database.categories.Proj2Tests;
 import edu.berkeley.cs186.database.categories.PublicTests;
 import edu.berkeley.cs186.database.categories.SystemTests;
@@ -33,23 +32,20 @@ import static org.junit.Assert.*;
 
 @Category(Proj2Tests.class)
 public class TestBPlusTree {
+    // max 5 I/Os per iterator creation default
+    private static final int MAX_IO_PER_ITER_CREATE = 5;
+    // max 1 I/Os per iterator next, unless overridden
+    private static final int MAX_IO_PER_NEXT = 1;
+    // 3 seconds max per method tested.
+    @Rule
+    public TestRule globalTimeout = new DisableOnDebug(Timeout.millis((long) (
+            3000 * TimeoutScaling.factor)));
     private BufferManager bufferManager;
     private BPlusTreeMetadata metadata;
     private LockContext treeContext;
 
-    // max 5 I/Os per iterator creation default
-    private static final int MAX_IO_PER_ITER_CREATE = 5;
-
-    // max 1 I/Os per iterator next, unless overridden
-    private static final int MAX_IO_PER_NEXT = 1;
-
-    // 3 seconds max per method tested.
-    @Rule
-    public TestRule globalTimeout = new DisableOnDebug(Timeout.millis((long) (
-                3000 * TimeoutScaling.factor)));
-
     @Before
-    public void setup()  {
+    public void setup() {
         DiskSpaceManager diskSpaceManager = new MemoryDiskSpaceManager();
         diskSpaceManager.allocPart(0);
         this.bufferManager = new BufferManager(diskSpaceManager, new DummyRecoveryManager(), 1024,
@@ -69,7 +65,7 @@ public class TestBPlusTree {
     // Helpers /////////////////////////////////////////////////////////////////
     private void setBPlusTreeMetadata(Type keySchema, int order) {
         this.metadata = new BPlusTreeMetadata("test", "col", keySchema, order,
-                                              0, DiskSpaceManager.INVALID_PAGE_NUM, -1);
+                0, DiskSpaceManager.INVALID_PAGE_NUM, -1);
     }
 
     private BPlusTree getBPlusTree(Type keySchema, int order) {
@@ -92,8 +88,8 @@ public class TestBPlusTree {
         long newIOs = bufferManager.getNumIOs();
         long maxIOs = maxIOsOverride.hasNext() ? maxIOsOverride.next() : MAX_IO_PER_ITER_CREATE;
         assertFalse("too many I/Os used constructing iterator (" + (newIOs - prevIOs) + " > " + maxIOs +
-                    ") - are you materializing more than you need?",
-                    newIOs - prevIOs > maxIOs);
+                        ") - are you materializing more than you need?",
+                newIOs - prevIOs > maxIOs);
 
         List<T> xs = new ArrayList<>();
         while (iter.hasNext()) {
@@ -102,15 +98,15 @@ public class TestBPlusTree {
             newIOs = bufferManager.getNumIOs();
             maxIOs = maxIOsOverride.hasNext() ? maxIOsOverride.next() : MAX_IO_PER_NEXT;
             assertFalse("too many I/Os used per next() call (" + (newIOs - prevIOs) + " > " + maxIOs +
-                        ") - are you materializing more than you need?",
-                        newIOs - prevIOs > maxIOs);
+                            ") - are you materializing more than you need?",
+                    newIOs - prevIOs > maxIOs);
         }
 
         long finalIOs = bufferManager.getNumIOs();
         maxIOs = xs.size() / (2 * metadata.getOrder());
         assertTrue("too few I/Os used overall (" + (finalIOs - initialIOs) + " < " + maxIOs +
-                   ") - are you materializing before the iterator is even constructed?",
-                   (finalIOs - initialIOs) >= maxIOs);
+                        ") - are you materializing before the iterator is even constructed?",
+                (finalIOs - initialIOs) >= maxIOs);
         return xs;
     }
 

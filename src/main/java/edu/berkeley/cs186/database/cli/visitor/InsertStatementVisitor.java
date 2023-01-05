@@ -37,7 +37,7 @@ class InsertStatementVisitor extends StatementVisitor {
     @Override
     public void execute(Transaction transaction, PrintStream out) {
         try {
-            for (Record record: values) {
+            for (Record record : values) {
                 transaction.insert(this.tableName, record);
             }
             out.println("INSERT");

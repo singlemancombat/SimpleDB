@@ -24,35 +24,6 @@ public class EndCheckpointLogRecord extends LogRecord {
         this.transactionTable = new HashMap<>(transactionTable);
     }
 
-    @Override
-    public Map<Long, Long> getDirtyPageTable() {
-        return dirtyPageTable;
-    }
-
-    @Override
-    public Map<Long, Pair<Transaction.Status, Long>> getTransactionTable() {
-        return transactionTable;
-    }
-
-    @Override
-    public byte[] toBytes() {
-        int recordSize = getRecordSize(dirtyPageTable.size(), transactionTable.size());
-        byte[] b = new byte[recordSize];
-        Buffer buf = ByteBuffer.wrap(b)
-                     .put((byte) getType().getValue())
-                     .putShort((short) dirtyPageTable.size())
-                     .putShort((short) transactionTable.size());
-        for (Map.Entry<Long, Long> entry : dirtyPageTable.entrySet()) {
-            buf.putLong(entry.getKey()).putLong(entry.getValue());
-        }
-        for (Map.Entry<Long, Pair<Transaction.Status, Long>> entry : transactionTable.entrySet()) {
-            buf.putLong(entry.getKey())
-            .put((byte) entry.getValue().getFirst().ordinal())
-            .putLong(entry.getValue().getSecond());
-        }
-        return b;
-    }
-
     /**
      * @return size of the record in bytes
      */
@@ -90,13 +61,48 @@ public class EndCheckpointLogRecord extends LogRecord {
     }
 
     @Override
+    public Map<Long, Long> getDirtyPageTable() {
+        return dirtyPageTable;
+    }
+
+    @Override
+    public Map<Long, Pair<Transaction.Status, Long>> getTransactionTable() {
+        return transactionTable;
+    }
+
+    @Override
+    public byte[] toBytes() {
+        int recordSize = getRecordSize(dirtyPageTable.size(), transactionTable.size());
+        byte[] b = new byte[recordSize];
+        Buffer buf = ByteBuffer.wrap(b)
+                .put((byte) getType().getValue())
+                .putShort((short) dirtyPageTable.size())
+                .putShort((short) transactionTable.size());
+        for (Map.Entry<Long, Long> entry : dirtyPageTable.entrySet()) {
+            buf.putLong(entry.getKey()).putLong(entry.getValue());
+        }
+        for (Map.Entry<Long, Pair<Transaction.Status, Long>> entry : transactionTable.entrySet()) {
+            buf.putLong(entry.getKey())
+                    .put((byte) entry.getValue().getFirst().ordinal())
+                    .putLong(entry.getValue().getSecond());
+        }
+        return b;
+    }
+
+    @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         EndCheckpointLogRecord that = (EndCheckpointLogRecord) o;
         return dirtyPageTable.equals(that.dirtyPageTable) &&
-               transactionTable.equals(that.transactionTable);
+                transactionTable.equals(that.transactionTable);
     }
 
     @Override
@@ -107,9 +113,9 @@ public class EndCheckpointLogRecord extends LogRecord {
     @Override
     public String toString() {
         return "EndCheckpointLogRecord{" +
-               "dirtyPageTable=" + dirtyPageTable +
-               ", transactionTable=" + transactionTable +
-               ", LSN=" + LSN +
-               '}';
+                "dirtyPageTable=" + dirtyPageTable +
+                ", transactionTable=" + transactionTable +
+                ", LSN=" + LSN +
+                '}';
     }
 }

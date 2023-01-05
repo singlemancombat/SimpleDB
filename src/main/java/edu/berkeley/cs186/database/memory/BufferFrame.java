@@ -49,17 +49,19 @@ abstract class BufferFrame {
 
     /**
      * Read from the buffer frame.
+     *
      * @param position position in buffer frame to start reading
-     * @param num number of bytes to read
-     * @param buf output buffer
+     * @param num      number of bytes to read
+     * @param buf      output buffer
      */
     abstract void readBytes(short position, short num, byte[] buf);
 
     /**
      * Write to the buffer frame, and mark frame as dirtied.
+     *
      * @param position position in buffer frame to start writing
-     * @param num number of bytes to write
-     * @param buf input buffer
+     * @param num      number of bytes to write
+     * @param buf      input buffer
      */
     abstract void writeBytes(short position, short num, byte[] buf);
 
@@ -77,12 +79,12 @@ abstract class BufferFrame {
     }
 
     /**
-     * @param pageLSN new pageLSN of the page loaded in this frame
-     */
-    abstract void setPageLSN(long pageLSN);
-
-    /**
      * @return pageLSN of the page loaded in this frame
      */
     abstract long getPageLSN();
+
+    /**
+     * @param pageLSN new pageLSN of the page loaded in this frame
+     */
+    abstract void setPageLSN(long pageLSN);
 }

@@ -4,7 +4,10 @@ import edu.berkeley.cs186.database.Database;
 import edu.berkeley.cs186.database.TestUtils;
 import edu.berkeley.cs186.database.TimeoutScaling;
 import edu.berkeley.cs186.database.Transaction;
-import edu.berkeley.cs186.database.categories.*;
+import edu.berkeley.cs186.database.categories.Proj3Part1Tests;
+import edu.berkeley.cs186.database.categories.Proj3Tests;
+import edu.berkeley.cs186.database.categories.PublicTests;
+import edu.berkeley.cs186.database.categories.SystemTests;
 import edu.berkeley.cs186.database.concurrency.DummyLockContext;
 import edu.berkeley.cs186.database.databox.*;
 import edu.berkeley.cs186.database.io.DiskSpaceManager;
@@ -31,14 +34,17 @@ import static org.junit.Assert.*;
 
 @Category({Proj3Tests.class, Proj3Part1Tests.class})
 public class TestNestedLoopJoin {
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+    // 4 second max per method tested.
+    @Rule
+    public TestRule globalTimeout = new DisableOnDebug(Timeout.millis((long) (
+            4000 * TimeoutScaling.factor)));
     private Database d;
     private long numIOs;
     private QueryOperator leftSourceOperator;
     private QueryOperator rightSourceOperator;
     private Map<Long, Page> pinnedPages = new HashMap<>();
-
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {
@@ -54,11 +60,6 @@ public class TestNestedLoopJoin {
         d.close();
     }
 
-    // 4 second max per method tested.
-    @Rule
-    public TestRule globalTimeout = new DisableOnDebug(Timeout.millis((long) (
-                4000 * TimeoutScaling.factor)));
-
     private void startCountIOs() {
         d.getBufferManager().evictAll();
         numIOs = d.getBufferManager().getNumIOs();
@@ -70,7 +71,7 @@ public class TestNestedLoopJoin {
         long newIOs = d.getBufferManager().getNumIOs();
         long IOs = newIOs - numIOs;
         assertTrue(IOs + " I/Os not between " + minIOs + " and " + maxIOs + message,
-                   minIOs <= IOs && IOs <= maxIOs);
+                minIOs <= IOs && IOs <= maxIOs);
         numIOs = newIOs;
     }
 
@@ -89,8 +90,8 @@ public class TestNestedLoopJoin {
     private void setSourceOperators(TestSourceOperator leftSourceOperator,
                                     TestSourceOperator rightSourceOperator, Transaction transaction) {
         setSourceOperators(
-            new MaterializeOperator(leftSourceOperator, transaction.getTransactionContext()),
-            new MaterializeOperator(rightSourceOperator, transaction.getTransactionContext())
+                new MaterializeOperator(leftSourceOperator, transaction.getTransactionContext()),
+                new MaterializeOperator(rightSourceOperator, transaction.getTransactionContext())
         );
     }
 
@@ -126,7 +127,7 @@ public class TestNestedLoopJoin {
         // joined on the column "int". Since all records are identical we expect
         // expect exactly 100 x 100 = 10000 records to be yielded.
         // Both tables consist of a single page.
-        try(Transaction transaction = d.beginTransaction()) {
+        try (Transaction transaction = d.beginTransaction()) {
             setSourceOperators(
                     TestUtils.createSourceWithAllTypes(100),
                     TestUtils.createSourceWithAllTypes(100),
@@ -166,7 +167,7 @@ public class TestNestedLoopJoin {
         // that iterator is created without error, and hasNext() immediately
         // returns false.
         d.setWorkMem(4); // B=4
-        try(Transaction transaction = d.beginTransaction()) {
+        try (Transaction transaction = d.beginTransaction()) {
             setSourceOperators(
                     TestUtils.createSourceWithAllTypes(100),
                     TestUtils.createSourceWithInts(Collections.emptyList()),
@@ -188,7 +189,7 @@ public class TestNestedLoopJoin {
         // that iterator is created without error, and hasNext() immediately
         // returns false.
         d.setWorkMem(4); // B=4
-        try(Transaction transaction = d.beginTransaction()) {
+        try (Transaction transaction = d.beginTransaction()) {
             setSourceOperators(
                     TestUtils.createSourceWithInts(Collections.emptyList()),
                     TestUtils.createSourceWithAllTypes(100),
@@ -210,7 +211,7 @@ public class TestNestedLoopJoin {
         // that iterator is created without error, and hasNext() immediately
         // returns false.
         d.setWorkMem(4); // B=4
-        try(Transaction transaction = d.beginTransaction()) {
+        try (Transaction transaction = d.beginTransaction()) {
             setSourceOperators(
                     TestUtils.createSourceWithInts(Collections.emptyList()),
                     TestUtils.createSourceWithInts(Collections.emptyList()),
@@ -234,7 +235,7 @@ public class TestNestedLoopJoin {
         // joined on the column "int". Since all records are identical we expect
         // expect exactly 100 x 100 = 10,000 records to be yielded.
         // Both tables consist of a single page.
-        try(Transaction transaction = d.beginTransaction()) {
+        try (Transaction transaction = d.beginTransaction()) {
             setSourceOperators(
                     TestUtils.createSourceWithAllTypes(100),
                     TestUtils.createSourceWithAllTypes(100),
@@ -285,7 +286,7 @@ public class TestNestedLoopJoin {
         // This test is identical to the above test, but uses your BNLJ
         // with B=5 instead.
         d.setWorkMem(5); // B=5
-        try(Transaction transaction = d.beginTransaction()) {
+        try (Transaction transaction = d.beginTransaction()) {
             setSourceOperators(
                     TestUtils.createSourceWithAllTypes(100),
                     TestUtils.createSourceWithAllTypes(100),
@@ -337,7 +338,7 @@ public class TestNestedLoopJoin {
         // 1 | x   | x   |
         //   +-----+-----+
         //     1 2 | 1 2
-        try(Transaction transaction = d.beginTransaction()) {
+        try (Transaction transaction = d.beginTransaction()) {
             // This whole section is just to generate the tables described above
             Record r1 = TestUtils.createRecordWithAllTypesWithValue(1);
             Record r2 = TestUtils.createRecordWithAllTypesWithValue(2);
@@ -364,8 +365,8 @@ public class TestNestedLoopJoin {
             }
 
             setSourceOperators(
-                new SequentialScanOperator(transaction.getTransactionContext(), "leftTable"),
-                new SequentialScanOperator(transaction.getTransactionContext(), "rightTable")
+                    new SequentialScanOperator(transaction.getTransactionContext(), "leftTable"),
+                    new SequentialScanOperator(transaction.getTransactionContext(), "rightTable")
             );
             pinPage(1, 1); // _metadata.tables entry for left source
             pinPage(1, 2); // _metadata.tables entry for right source
@@ -461,7 +462,7 @@ public class TestNestedLoopJoin {
         // Note that the left (vertical) relation will be processed in blocks
         // (B=4)
         d.setWorkMem(4); // B=4
-        try(Transaction transaction = d.beginTransaction()) {
+        try (Transaction transaction = d.beginTransaction()) {
             // This whole section is just to generate the tables described above
             Record r1 = TestUtils.createRecordWithAllTypesWithValue(1);
             Record r2 = TestUtils.createRecordWithAllTypesWithValue(2);

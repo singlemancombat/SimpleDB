@@ -18,6 +18,12 @@ public class CommitTransactionLogRecord extends LogRecord {
         this.prevLSN = prevLSN;
     }
 
+    public static Optional<LogRecord> fromBytes(Buffer buf) {
+        long transNum = buf.getLong();
+        long prevLSN = buf.getLong();
+        return Optional.of(new CommitTransactionLogRecord(transNum, prevLSN));
+    }
+
     @Override
     public Optional<Long> getTransNum() {
         return Optional.of(transNum);
@@ -32,26 +38,26 @@ public class CommitTransactionLogRecord extends LogRecord {
     public byte[] toBytes() {
         byte[] b = new byte[1 + Long.BYTES + Long.BYTES];
         ByteBuffer.wrap(b)
-        .put((byte) getType().getValue())
-        .putLong(transNum)
-        .putLong(prevLSN);
+                .put((byte) getType().getValue())
+                .putLong(transNum)
+                .putLong(prevLSN);
         return b;
-    }
-
-    public static Optional<LogRecord> fromBytes(Buffer buf) {
-        long transNum = buf.getLong();
-        long prevLSN = buf.getLong();
-        return Optional.of(new CommitTransactionLogRecord(transNum, prevLSN));
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         CommitTransactionLogRecord that = (CommitTransactionLogRecord) o;
         return transNum == that.transNum &&
-               prevLSN == that.prevLSN;
+                prevLSN == that.prevLSN;
     }
 
     @Override
@@ -62,9 +68,9 @@ public class CommitTransactionLogRecord extends LogRecord {
     @Override
     public String toString() {
         return "CommitTransactionLogRecord{" +
-               "transNum=" + transNum +
-               ", prevLSN=" + prevLSN +
-               ", LSN=" + LSN +
-               '}';
+                "transNum=" + transNum +
+                ", prevLSN=" + prevLSN +
+                ", LSN=" + LSN +
+                '}';
     }
 }

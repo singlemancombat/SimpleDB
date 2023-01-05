@@ -28,325 +28,30 @@ public class BufferManager implements AutoCloseable {
 
     // Effective page size available to users of buffer manager.
     public static final short EFFECTIVE_PAGE_SIZE = (short) (DiskSpaceManager.PAGE_SIZE - RESERVED_SPACE);
-
+    public static boolean logIOs;
     // Buffer frames
     private Frame[] frames;
-
     // Reference to the disk space manager underneath this buffer manager instance.
     private DiskSpaceManager diskSpaceManager;
-
     // Map of page number to frame index
     private Map<Long, Integer> pageToFrame;
-
     // Lock on buffer manager
     private ReentrantLock managerLock;
-
     // Eviction policy
     private EvictionPolicy evictionPolicy;
-
     // Index of first free frame
     private int firstFreeIndex;
-
     // Recovery manager
     private RecoveryManager recoveryManager;
-
     // Count of number of I/Os
     private long numIOs = 0;
-
-    /**
-     * Buffer frame, containing information about the loaded page, wrapped around the
-     * underlying byte array. Free frames use the index field to create a (singly) linked
-     * list between free frames.
-     */
-    class Frame extends BufferFrame {
-        private static final int INVALID_INDEX = Integer.MIN_VALUE;
-
-        byte[] contents;
-        private int index;
-        private long pageNum;
-        private boolean dirty;
-        private ReentrantLock frameLock;
-        private boolean logPage;
-
-        Frame(byte[] contents, int nextFree) {
-            this(contents, ~nextFree, DiskSpaceManager.INVALID_PAGE_NUM);
-        }
-
-        Frame(Frame frame) {
-            this(frame.contents, frame.index, frame.pageNum);
-        }
-
-        Frame(byte[] contents, int index, long pageNum) {
-            this.contents = contents;
-            this.index = index;
-            this.pageNum = pageNum;
-            this.dirty = false;
-            this.frameLock = new ReentrantLock();
-            int partNum = DiskSpaceManager.getPartNum(pageNum);
-            this.logPage = partNum == LogManager.LOG_PARTITION;
-        }
-
-        /**
-         * Pin buffer frame; cannot be evicted while pinned. A "hit" happens when the
-         * buffer frame gets pinned.
-         */
-        @Override
-        public void pin() {
-            this.frameLock.lock();
-
-            if (!this.isValid()) {
-                throw new IllegalStateException("pinning invalidated frame");
-            }
-
-            super.pin();
-        }
-
-        /**
-         * Unpin buffer frame.
-         */
-        @Override
-        public void unpin() {
-            super.unpin();
-            this.frameLock.unlock();
-        }
-
-        /**
-         * @return whether this frame is valid
-         */
-        @Override
-        public boolean isValid() {
-            return this.index >= 0;
-        }
-
-        /**
-         * @return whether this frame's page has been freed
-         */
-        private boolean isFreed() {
-            return this.index < 0 && this.index != INVALID_INDEX;
-        }
-
-        /**
-         * Invalidates the frame, flushing it if necessary.
-         */
-        private void invalidate() {
-            if (this.isValid()) {
-                this.flush();
-            }
-            this.index = INVALID_INDEX;
-            this.contents = null;
-        }
-
-        /**
-         * Marks the frame as free.
-         */
-        private void setFree() {
-            if (isFreed()) {
-                throw new IllegalStateException("cannot free free frame");
-            }
-            int nextFreeIndex = firstFreeIndex;
-            firstFreeIndex = this.index;
-            this.index = ~nextFreeIndex;
-        }
-
-        private void setUsed() {
-            if (!isFreed()) {
-                throw new IllegalStateException("cannot unfree used frame");
-            }
-            int index = firstFreeIndex;
-            firstFreeIndex = ~this.index;
-            this.index = index;
-        }
-
-        /**
-         * @return page number of this frame
-         */
-        @Override
-        public long getPageNum() {
-            return this.pageNum;
-        }
-
-        /**
-         * Flushes this buffer frame to disk, but does not unload it.
-         */
-        @Override
-        void flush() {
-            this.frameLock.lock();
-            super.pin();
-            try {
-                if (!this.isValid()) {
-                    return;
-                }
-                if (!this.dirty) {
-                    return;
-                }
-                if (!this.logPage) {
-                    recoveryManager.pageFlushHook(this.getPageLSN());
-                }
-                BufferManager.this.diskSpaceManager.writePage(pageNum, contents);
-                BufferManager.this.incrementIOs();
-                this.dirty = false;
-            } finally {
-                super.unpin();
-                this.frameLock.unlock();
-            }
-        }
-
-        /**
-         * Read from the buffer frame.
-         * @param position position in buffer frame to start reading
-         * @param num number of bytes to read
-         * @param buf output buffer
-         */
-        @Override
-        void readBytes(short position, short num, byte[] buf) {
-            this.pin();
-            try {
-                if (!this.isValid()) {
-                    throw new IllegalStateException("reading from invalid buffer frame");
-                }
-                System.arraycopy(this.contents, position + dataOffset(), buf, 0, num);
-                BufferManager.this.evictionPolicy.hit(this);
-            } finally {
-                this.unpin();
-            }
-        }
-
-        /**
-         * Write to the buffer frame, and mark frame as dirtied.
-         * @param position position in buffer frame to start writing
-         * @param num number of bytes to write
-         * @param buf input buffer
-         */
-        @Override
-        void writeBytes(short position, short num, byte[] buf) {
-            this.pin();
-            try {
-                if (!this.isValid()) {
-                    throw new IllegalStateException("writing to invalid buffer frame");
-                }
-                int offset = position + dataOffset();
-                TransactionContext transaction = TransactionContext.getTransaction();
-                if (transaction != null && !logPage) {
-                    List<Pair<Integer, Integer>> changedRanges = getChangedBytes(offset, num, buf);
-                    for (Pair<Integer, Integer> range : changedRanges) {
-                        int start = range.getFirst();
-                        int len = range.getSecond();
-                        byte[] before = Arrays.copyOfRange(contents, start + offset, start + offset + len);
-                        byte[] after = Arrays.copyOfRange(buf, start, start + len);
-                        long pageLSN = recoveryManager.logPageWrite(transaction.getTransNum(), pageNum, (short) (start + position), before,
-                                       after);
-                        this.setPageLSN(pageLSN);
-                    }
-                }
-                System.arraycopy(buf, 0, this.contents, offset, num);
-                this.dirty = true;
-                BufferManager.this.evictionPolicy.hit(this);
-            } finally {
-                this.unpin();
-            }
-        }
-
-        /**
-         * Requests a valid Frame object for the page (if invalid, a new Frame object is returned).
-         * Page is pinned on return.
-         */
-        @Override
-        Frame requestValidFrame() {
-            this.frameLock.lock();
-            try {
-                if (this.isFreed()) {
-                    throw new PageException("page already freed");
-                }
-                if (this.isValid()) {
-                    this.pin();
-                    return this;
-                }
-                return BufferManager.this.fetchPageFrame(this.pageNum);
-            } finally {
-                this.frameLock.unlock();
-            }
-        }
-
-        @Override
-        short getEffectivePageSize() {
-            if (logPage) {
-                return DiskSpaceManager.PAGE_SIZE;
-            } else {
-                return BufferManager.EFFECTIVE_PAGE_SIZE;
-            }
-        }
-
-        @Override
-        long getPageLSN() {
-            return ByteBuffer.wrap(this.contents).getLong(8);
-        }
-
-        @Override
-        public String toString() {
-            if (index >= 0) {
-                return "Buffer Frame " + index + ", Page " + pageNum + (isPinned() ? " (pinned)" : "");
-            } else if (index == INVALID_INDEX) {
-                return "Buffer Frame (evicted), Page " + pageNum;
-            } else {
-                return "Buffer Frame (freed), next free = " + (~index);
-            }
-        }
-
-        /**
-         * Generates (offset, length) pairs for where buf differs from contents. Merges nearby
-         * pairs (where nearby is defined as pairs that have fewer than BufferManager.RESERVED_SPACE
-         * bytes of unmodified data between them).
-         */
-        private List<Pair<Integer, Integer>> getChangedBytes(int offset, int num, byte[] buf) {
-            List<Pair<Integer, Integer>> ranges = new ArrayList<>();
-            int maxRange = EFFECTIVE_PAGE_SIZE / 2;
-            int startIndex = -1;
-            int skip = -1;
-            for (int i = 0; i < num; ++i) {
-                if (startIndex >= 0 && maxRange == i - startIndex) {
-                    ranges.add(new Pair<>(startIndex, maxRange));
-                    startIndex = -1;
-                    skip = -1;
-                } else if (buf[i] == contents[offset + i] && startIndex >= 0) {
-                    if (skip > BufferManager.RESERVED_SPACE) {
-                        ranges.add(new Pair<>(startIndex, i - startIndex - skip));
-                        startIndex = -1;
-                        skip = -1;
-                    } else {
-                        ++skip;
-                    }
-                } else if (buf[i] != contents[offset + i]) {
-                    if (startIndex < 0) {
-                        startIndex = i;
-                    }
-                    skip = 0;
-                }
-            }
-            if (startIndex >= 0) {
-                ranges.add(new Pair<>(startIndex, num - startIndex - skip));
-            }
-            return ranges;
-        }
-
-        void setPageLSN(long pageLSN) {
-            ByteBuffer.wrap(this.contents).putLong(8, pageLSN);
-        }
-
-        private short dataOffset() {
-            if (logPage) {
-                return 0;
-            } else {
-                return BufferManager.RESERVED_SPACE;
-            }
-        }
-    }
 
     /**
      * Creates a new buffer manager.
      *
      * @param diskSpaceManager the underlying disk space manager
-     * @param bufferSize size of buffer (in pages)
-     * @param evictionPolicy eviction policy to use
+     * @param bufferSize       size of buffer (in pages)
+     * @param evictionPolicy   eviction policy to use
      */
     public BufferManager(DiskSpaceManager diskSpaceManager, RecoveryManager recoveryManager,
                          int bufferSize, EvictionPolicy evictionPolicy) {
@@ -544,6 +249,7 @@ public class BufferManager implements AutoCloseable {
     /**
      * Calls flush on the frame of a page and unloads the page from the frame. If the page
      * is not loaded, this does nothing.
+     *
      * @param pageNum page number of page to evict
      */
     public void evict(long pageNum) {
@@ -587,6 +293,7 @@ public class BufferManager implements AutoCloseable {
 
     /**
      * Calls the passed in method with the page number of every loaded page.
+     *
      * @param process method to consume page numbers. The first parameter is the page number,
      *                and the second parameter is a boolean indicating whether the page is dirty
      *                (has an unflushed change).
@@ -608,13 +315,13 @@ public class BufferManager implements AutoCloseable {
      * Get the number of I/Os since the buffer manager was started, excluding anything used in disk
      * space management, and not counting allocation/free. This is not really useful except as a
      * relative measure.
+     *
      * @return number of I/Os
      */
     public long getNumIOs() {
         return numIOs;
     }
 
-    public static boolean logIOs;
     private void incrementIOs() {
         if (logIOs) {
             System.out.println("IO incurred");
@@ -631,12 +338,303 @@ public class BufferManager implements AutoCloseable {
 
     /**
      * Wraps a frame in a page object.
+     *
      * @param parentContext parent lock context of the page
-     * @param pageNum page number
-     * @param frame frame for the page
+     * @param pageNum       page number
+     * @param frame         frame for the page
      * @return page object
      */
     private Page frameToPage(LockContext parentContext, long pageNum, Frame frame) {
         return new Page(parentContext.childContext(pageNum), frame);
+    }
+
+    /**
+     * Buffer frame, containing information about the loaded page, wrapped around the
+     * underlying byte array. Free frames use the index field to create a (singly) linked
+     * list between free frames.
+     */
+    class Frame extends BufferFrame {
+        private static final int INVALID_INDEX = Integer.MIN_VALUE;
+
+        byte[] contents;
+        private int index;
+        private long pageNum;
+        private boolean dirty;
+        private ReentrantLock frameLock;
+        private boolean logPage;
+
+        Frame(byte[] contents, int nextFree) {
+            this(contents, ~nextFree, DiskSpaceManager.INVALID_PAGE_NUM);
+        }
+
+        Frame(Frame frame) {
+            this(frame.contents, frame.index, frame.pageNum);
+        }
+
+        Frame(byte[] contents, int index, long pageNum) {
+            this.contents = contents;
+            this.index = index;
+            this.pageNum = pageNum;
+            this.dirty = false;
+            this.frameLock = new ReentrantLock();
+            int partNum = DiskSpaceManager.getPartNum(pageNum);
+            this.logPage = partNum == LogManager.LOG_PARTITION;
+        }
+
+        /**
+         * Pin buffer frame; cannot be evicted while pinned. A "hit" happens when the
+         * buffer frame gets pinned.
+         */
+        @Override
+        public void pin() {
+            this.frameLock.lock();
+
+            if (!this.isValid()) {
+                throw new IllegalStateException("pinning invalidated frame");
+            }
+
+            super.pin();
+        }
+
+        /**
+         * Unpin buffer frame.
+         */
+        @Override
+        public void unpin() {
+            super.unpin();
+            this.frameLock.unlock();
+        }
+
+        /**
+         * @return whether this frame is valid
+         */
+        @Override
+        public boolean isValid() {
+            return this.index >= 0;
+        }
+
+        /**
+         * @return whether this frame's page has been freed
+         */
+        private boolean isFreed() {
+            return this.index < 0 && this.index != INVALID_INDEX;
+        }
+
+        /**
+         * Invalidates the frame, flushing it if necessary.
+         */
+        private void invalidate() {
+            if (this.isValid()) {
+                this.flush();
+            }
+            this.index = INVALID_INDEX;
+            this.contents = null;
+        }
+
+        /**
+         * Marks the frame as free.
+         */
+        private void setFree() {
+            if (isFreed()) {
+                throw new IllegalStateException("cannot free free frame");
+            }
+            int nextFreeIndex = firstFreeIndex;
+            firstFreeIndex = this.index;
+            this.index = ~nextFreeIndex;
+        }
+
+        private void setUsed() {
+            if (!isFreed()) {
+                throw new IllegalStateException("cannot unfree used frame");
+            }
+            int index = firstFreeIndex;
+            firstFreeIndex = ~this.index;
+            this.index = index;
+        }
+
+        /**
+         * @return page number of this frame
+         */
+        @Override
+        public long getPageNum() {
+            return this.pageNum;
+        }
+
+        /**
+         * Flushes this buffer frame to disk, but does not unload it.
+         */
+        @Override
+        void flush() {
+            this.frameLock.lock();
+            super.pin();
+            try {
+                if (!this.isValid()) {
+                    return;
+                }
+                if (!this.dirty) {
+                    return;
+                }
+                if (!this.logPage) {
+                    recoveryManager.pageFlushHook(this.getPageLSN());
+                }
+                BufferManager.this.diskSpaceManager.writePage(pageNum, contents);
+                BufferManager.this.incrementIOs();
+                this.dirty = false;
+            } finally {
+                super.unpin();
+                this.frameLock.unlock();
+            }
+        }
+
+        /**
+         * Read from the buffer frame.
+         *
+         * @param position position in buffer frame to start reading
+         * @param num      number of bytes to read
+         * @param buf      output buffer
+         */
+        @Override
+        void readBytes(short position, short num, byte[] buf) {
+            this.pin();
+            try {
+                if (!this.isValid()) {
+                    throw new IllegalStateException("reading from invalid buffer frame");
+                }
+                System.arraycopy(this.contents, position + dataOffset(), buf, 0, num);
+                BufferManager.this.evictionPolicy.hit(this);
+            } finally {
+                this.unpin();
+            }
+        }
+
+        /**
+         * Write to the buffer frame, and mark frame as dirtied.
+         *
+         * @param position position in buffer frame to start writing
+         * @param num      number of bytes to write
+         * @param buf      input buffer
+         */
+        @Override
+        void writeBytes(short position, short num, byte[] buf) {
+            this.pin();
+            try {
+                if (!this.isValid()) {
+                    throw new IllegalStateException("writing to invalid buffer frame");
+                }
+                int offset = position + dataOffset();
+                TransactionContext transaction = TransactionContext.getTransaction();
+                if (transaction != null && !logPage) {
+                    List<Pair<Integer, Integer>> changedRanges = getChangedBytes(offset, num, buf);
+                    for (Pair<Integer, Integer> range : changedRanges) {
+                        int start = range.getFirst();
+                        int len = range.getSecond();
+                        byte[] before = Arrays.copyOfRange(contents, start + offset, start + offset + len);
+                        byte[] after = Arrays.copyOfRange(buf, start, start + len);
+                        long pageLSN = recoveryManager.logPageWrite(transaction.getTransNum(), pageNum, (short) (start + position), before,
+                                after);
+                        this.setPageLSN(pageLSN);
+                    }
+                }
+                System.arraycopy(buf, 0, this.contents, offset, num);
+                this.dirty = true;
+                BufferManager.this.evictionPolicy.hit(this);
+            } finally {
+                this.unpin();
+            }
+        }
+
+        /**
+         * Requests a valid Frame object for the page (if invalid, a new Frame object is returned).
+         * Page is pinned on return.
+         */
+        @Override
+        Frame requestValidFrame() {
+            this.frameLock.lock();
+            try {
+                if (this.isFreed()) {
+                    throw new PageException("page already freed");
+                }
+                if (this.isValid()) {
+                    this.pin();
+                    return this;
+                }
+                return BufferManager.this.fetchPageFrame(this.pageNum);
+            } finally {
+                this.frameLock.unlock();
+            }
+        }
+
+        @Override
+        short getEffectivePageSize() {
+            if (logPage) {
+                return DiskSpaceManager.PAGE_SIZE;
+            } else {
+                return BufferManager.EFFECTIVE_PAGE_SIZE;
+            }
+        }
+
+        @Override
+        long getPageLSN() {
+            return ByteBuffer.wrap(this.contents).getLong(8);
+        }
+
+        void setPageLSN(long pageLSN) {
+            ByteBuffer.wrap(this.contents).putLong(8, pageLSN);
+        }
+
+        @Override
+        public String toString() {
+            if (index >= 0) {
+                return "Buffer Frame " + index + ", Page " + pageNum + (isPinned() ? " (pinned)" : "");
+            } else if (index == INVALID_INDEX) {
+                return "Buffer Frame (evicted), Page " + pageNum;
+            } else {
+                return "Buffer Frame (freed), next free = " + (~index);
+            }
+        }
+
+        /**
+         * Generates (offset, length) pairs for where buf differs from contents. Merges nearby
+         * pairs (where nearby is defined as pairs that have fewer than BufferManager.RESERVED_SPACE
+         * bytes of unmodified data between them).
+         */
+        private List<Pair<Integer, Integer>> getChangedBytes(int offset, int num, byte[] buf) {
+            List<Pair<Integer, Integer>> ranges = new ArrayList<>();
+            int maxRange = EFFECTIVE_PAGE_SIZE / 2;
+            int startIndex = -1;
+            int skip = -1;
+            for (int i = 0; i < num; ++i) {
+                if (startIndex >= 0 && maxRange == i - startIndex) {
+                    ranges.add(new Pair<>(startIndex, maxRange));
+                    startIndex = -1;
+                    skip = -1;
+                } else if (buf[i] == contents[offset + i] && startIndex >= 0) {
+                    if (skip > BufferManager.RESERVED_SPACE) {
+                        ranges.add(new Pair<>(startIndex, i - startIndex - skip));
+                        startIndex = -1;
+                        skip = -1;
+                    } else {
+                        ++skip;
+                    }
+                } else if (buf[i] != contents[offset + i]) {
+                    if (startIndex < 0) {
+                        startIndex = i;
+                    }
+                    skip = 0;
+                }
+            }
+            if (startIndex >= 0) {
+                ranges.add(new Pair<>(startIndex, num - startIndex - skip));
+            }
+            return ranges;
+        }
+
+        private short dataOffset() {
+            if (logPage) {
+                return 0;
+            } else {
+                return BufferManager.RESERVED_SPACE;
+            }
+        }
     }
 }

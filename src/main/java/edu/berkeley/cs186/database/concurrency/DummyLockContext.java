@@ -5,7 +5,7 @@ import edu.berkeley.cs186.database.TransactionContext;
 /**
  * A lock context that doesn't do anything at all. Used where a lock context
  * is expected, but no locking should be done.
- *
+ * <p>
  * An example of where this is useful: temporary tables (for example the runs
  * created in external sort) are only accessible from the transaction that
  * created them. Since there's no chance of multiple transactions attempting
@@ -30,19 +30,24 @@ public class DummyLockContext extends LockContext {
     }
 
     @Override
-    public void acquire(TransactionContext transaction, LockType lockType) { }
+    public void acquire(TransactionContext transaction, LockType lockType) {
+    }
 
     @Override
-    public void release(TransactionContext transaction) { }
+    public void release(TransactionContext transaction) {
+    }
 
     @Override
-    public void promote(TransactionContext transaction, LockType newLockType) { }
+    public void promote(TransactionContext transaction, LockType newLockType) {
+    }
 
     @Override
-    public void escalate(TransactionContext transaction) { }
+    public void escalate(TransactionContext transaction) {
+    }
 
     @Override
-    public void disableChildLocks() { }
+    public void disableChildLocks() {
+    }
 
     @Override
     public LockContext childContext(String name) {

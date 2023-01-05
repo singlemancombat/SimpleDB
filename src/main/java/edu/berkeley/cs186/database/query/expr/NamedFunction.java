@@ -237,10 +237,14 @@ abstract class NamedFunction extends Expression {
         public DataBox evaluate(Record record) {
             DataBox d = this.children.get(0).evaluate(record);
             switch (this.getType().getTypeId()) {
-                case INT: return new IntDataBox(-toInt(d));
-                case LONG: return new LongDataBox(-toInt(d));
-                case FLOAT: return new FloatDataBox(-toFloat(d));
-                default: throw new RuntimeException("Unreachable code.");
+                case INT:
+                    return new IntDataBox(-toInt(d));
+                case LONG:
+                    return new LongDataBox(-toInt(d));
+                case FLOAT:
+                    return new FloatDataBox(-toFloat(d));
+                default:
+                    throw new RuntimeException("Unreachable code.");
             }
         }
     }

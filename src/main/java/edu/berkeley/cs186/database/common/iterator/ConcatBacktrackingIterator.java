@@ -11,7 +11,7 @@ import java.util.NoSuchElementException;
  * - []
  * - [4,5,6]
  * - [7,8]
- *
+ * <p>
  * Concatenating them with this class would produce a backtracking iterator
  * over the values [1,2,3,4,5,6,7,8].
  */
@@ -54,7 +54,7 @@ public class ConcatBacktrackingIterator<T> implements BacktrackingIterator<T> {
                 nextIndex++;
                 this.nextItemIterator = iterables.get(nextIndex).iterator();
             } else {
-                assert(nextIndex + 1 == iterables.size());
+                assert (nextIndex + 1 == iterables.size());
                 if (!outerIterator.hasNext()) break;
                 iterables.add(outerIterator.next());
             }

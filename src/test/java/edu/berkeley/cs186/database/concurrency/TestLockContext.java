@@ -2,7 +2,6 @@ package edu.berkeley.cs186.database.concurrency;
 
 import edu.berkeley.cs186.database.TimeoutScaling;
 import edu.berkeley.cs186.database.TransactionContext;
-import edu.berkeley.cs186.database.categories.HiddenTests;
 import edu.berkeley.cs186.database.categories.Proj4Part2Tests;
 import edu.berkeley.cs186.database.categories.Proj4Tests;
 import edu.berkeley.cs186.database.categories.PublicTests;
@@ -15,27 +14,22 @@ import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.*;
 
 @Category({Proj4Tests.class, Proj4Part2Tests.class})
 public class TestLockContext {
-    private LoggingLockManager lockManager;
-
-    private LockContext dbLockContext;
-    private LockContext tableLockContext;
-    private LockContext pageLockContext;
-
-    private TransactionContext[] transactions;
-
     // 1 second per test
     @Rule
     public TestRule globalTimeout = new DisableOnDebug(Timeout.millis((long) (
             1000 * TimeoutScaling.factor)));
+    private LoggingLockManager lockManager;
+    private LockContext dbLockContext;
+    private LockContext tableLockContext;
+    private LockContext pageLockContext;
+    private TransactionContext[] transactions;
 
     @Before
     public void setUp() {
@@ -78,7 +72,7 @@ public class TestLockContext {
         tableLockContext.acquire(transactions[0], LockType.S);
         // both locks should have been acquired
         Assert.assertEquals(Arrays.asList(new Lock(dbLockContext.getResourceName(), LockType.IS, 0L),
-                new Lock(tableLockContext.getResourceName(), LockType.S, 0L)),
+                        new Lock(tableLockContext.getResourceName(), LockType.S, 0L)),
                 lockManager.getLocks(transactions[0]));
     }
 
@@ -90,8 +84,8 @@ public class TestLockContext {
         pageLockContext.acquire(transactions[0], LockType.S);
         // all three locks should have been acquired
         Assert.assertEquals(Arrays.asList(new Lock(dbLockContext.getResourceName(), LockType.IX, 0L),
-                new Lock(tableLockContext.getResourceName(), LockType.IS, 0L),
-                new Lock(pageLockContext.getResourceName(), LockType.S, 0L)),
+                        new Lock(tableLockContext.getResourceName(), LockType.IS, 0L),
+                        new Lock(pageLockContext.getResourceName(), LockType.S, 0L)),
                 lockManager.getLocks(transactions[0]));
     }
 

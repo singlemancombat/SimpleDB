@@ -28,13 +28,16 @@ import static org.junit.Assert.*;
 @Category({Proj99Tests.class, SystemTests.class})
 public class TestTable {
     private static final String TABLENAME = "testtable";
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
     private PageDirectory pageDirectory;
     private Table table;
     private Schema schema;
     private BufferManager bufferManager;
 
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
+    private static Record createRecordWithAllTypes(int i) {
+        return new Record(false, i, "a", 1.2f);
+    }
 
     @Before
     public void setup() {
@@ -55,10 +58,6 @@ public class TestTable {
     @After
     public void cleanup() {
         bufferManager.close();
-    }
-
-    private static Record createRecordWithAllTypes(int i) {
-        return new Record(false, i, "a", 1.2f);
     }
 
     @Test
@@ -148,7 +147,7 @@ public class TestTable {
     }
 
     @Test
-    public void testReloadTable()  {
+    public void testReloadTable() {
         // We add 42 to make sure we have some incomplete pages.
         int numRecords = table.getNumRecordsPerPage() * 2 + 42;
 

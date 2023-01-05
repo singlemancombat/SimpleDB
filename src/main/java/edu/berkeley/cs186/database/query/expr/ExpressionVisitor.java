@@ -100,7 +100,7 @@ public class ExpressionVisitor extends RookieParserDefaultVisitor {
             if (this.operands.size() == 1) return this.operands.get(0);
             Expression prev = this.operands.get(0);
             for (int i = 0; i < operators.size(); i++) {
-                Expression curr = this.operands.get(i+1);
+                Expression curr = this.operands.get(i + 1);
                 prev = Expression.compare(this.operators.get(i), prev, curr);
             }
             return prev;
@@ -156,8 +156,8 @@ public class ExpressionVisitor extends RookieParserDefaultVisitor {
     }
 
     private class PrimaryExpressionVisitor extends RookieParserDefaultVisitor {
-        private boolean negated = false;
         boolean seenRoot = false;
+        private boolean negated = false;
         private Expression childExpr;
 
         @Override

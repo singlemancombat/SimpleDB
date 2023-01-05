@@ -43,14 +43,14 @@ public class Bucket {
         this.count = count;
     }
 
-    public void setDistinctCount(int count) {
-        this.distinctCount = count;
-        dictionary = null;
-    }
-
     public int getDistinctCount() {
         if (dictionary == null) return this.distinctCount;
         return dictionary.size();
+    }
+
+    public void setDistinctCount(int count) {
+        this.distinctCount = count;
+        dictionary = null;
     }
 
     public void increment(float val) {

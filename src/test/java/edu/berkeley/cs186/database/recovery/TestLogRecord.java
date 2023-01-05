@@ -83,7 +83,7 @@ public class TestLogRecord {
     @Test
     public void testUpdatePageSerialize() {
         checkSerialize(new UpdatePageLogRecord(-98765L, -43210L, -12345L, (short) 1234, "asdfg".getBytes(),
-                                               "zxcvb".getBytes()));
+                "zxcvb".getBytes()));
     }
 
     @Test
@@ -91,11 +91,11 @@ public class TestLogRecord {
         byte[] pageString = new String(new char[BufferManager.EFFECTIVE_PAGE_SIZE]).replace('\0',
                 'a').getBytes();
         checkSerialize(new UndoUpdatePageLogRecord(-98765L, -43210L, -12345L, -57812L, (short) 0,
-                       "zxcvb".getBytes()));
+                "zxcvb".getBytes()));
         checkSerialize(new UndoUpdatePageLogRecord(-98765L, -43210L, -12345L, -57812L, (short) 1234,
-                       "zxcvb".getBytes()));
+                "zxcvb".getBytes()));
         checkSerialize(new UndoUpdatePageLogRecord(-98765L, -43210L, -12345L, -57812L, (short) 0,
-                       pageString));
+                pageString));
     }
 
     @Test

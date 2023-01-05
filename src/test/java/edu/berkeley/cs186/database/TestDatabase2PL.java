@@ -24,77 +24,22 @@ import static org.junit.Assert.assertTrue;
 @Category({Proj4Tests.class, Proj4Part2Tests.class})
 public class TestDatabase2PL {
     private static final String TestDir = "testDatabase2PL";
+    // 7 second max per method tested.
+    public static long timeout = (long) (7000 * TimeoutScaling.factor);
+    @ClassRule
+    public static TemporaryFolder checkFolder = new TemporaryFolder();
     private static boolean passedPreCheck = false;
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+    @Rule
+    public TestRule globalTimeout = new DisableOnDebug(Timeout.millis(timeout));
     private Database db;
     private LoggingLockManager lockManager;
     private String filename;
 
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
-
-    // 7 second max per method tested.
-    public static long timeout = (long) (7000 * TimeoutScaling.factor);
-
-    @Rule
-    public TestRule globalTimeout = new DisableOnDebug(Timeout.millis(timeout));
-
-    private void reloadDatabase() {
-        if (this.db != null) {
-            while (TransactionContext.getTransaction() != null) {
-                TransactionContext.unsetTransaction();
-            }
-            this.db.close();
-        }
-        if (this.lockManager != null && this.lockManager.isLogging()) {
-            List<String> oldLog = this.lockManager.log;
-            this.lockManager = new LoggingLockManager();
-            this.lockManager.log = oldLog;
-            this.lockManager.startLog();
-        } else {
-            this.lockManager = new LoggingLockManager();
-        }
-        this.db = new Database(this.filename, 128, this.lockManager);
-        this.db.setWorkMem(32); // B=32
-        // force initialization to finish before continuing
-        this.db.waitAllTransactions();
-    }
-
-    @ClassRule
-    public static  TemporaryFolder checkFolder = new TemporaryFolder();
-
     @BeforeClass
     public static void beforeAll() {
         passedPreCheck = TestDatabaseDeadlockPrecheck.performCheck(checkFolder);
-    }
-
-    @Before
-    public void beforeEach() throws Exception {
-        assertTrue("You will need to pass the test in testDatabaseDeadLockPrecheck before running these tests", passedPreCheck);
-        File testDir = tempFolder.newFolder(TestDir);
-        this.filename = testDir.getAbsolutePath();
-        this.reloadDatabase();
-        try(Transaction t = this.beginTransaction()) {
-            t.dropAllTables();
-        } finally {
-            this.db.waitAllTransactions();
-        }
-    }
-
-    @After
-    public void afterEach() {
-        if (!passedPreCheck) {
-            return;
-        }
-
-        this.lockManager.endLog();
-        if (TransactionContext.getTransaction() != null) {
-            TransactionContext.unsetTransaction();
-        }
-        this.db.close();
-    }
-
-    private Transaction beginTransaction() {
-        return db.beginTransaction();
     }
 
     private static <T extends Comparable<? super T>> void assertSameItems(List<T> expected,
@@ -123,7 +68,7 @@ public class TestDatabase2PL {
         }
     }
 
-    private static List<String> prepare(Long transNum, String ... expected) {
+    private static List<String> prepare(Long transNum, String... expected) {
         return Arrays.stream(expected).map((String log) -> String.format(log,
                 transNum)).collect(Collectors.toList());
     }
@@ -141,11 +86,62 @@ public class TestDatabase2PL {
         return log;
     }
 
+    private void reloadDatabase() {
+        if (this.db != null) {
+            while (TransactionContext.getTransaction() != null) {
+                TransactionContext.unsetTransaction();
+            }
+            this.db.close();
+        }
+        if (this.lockManager != null && this.lockManager.isLogging()) {
+            List<String> oldLog = this.lockManager.log;
+            this.lockManager = new LoggingLockManager();
+            this.lockManager.log = oldLog;
+            this.lockManager.startLog();
+        } else {
+            this.lockManager = new LoggingLockManager();
+        }
+        this.db = new Database(this.filename, 128, this.lockManager);
+        this.db.setWorkMem(32); // B=32
+        // force initialization to finish before continuing
+        this.db.waitAllTransactions();
+    }
+
+    @Before
+    public void beforeEach() throws Exception {
+        assertTrue("You will need to pass the test in testDatabaseDeadLockPrecheck before running these tests", passedPreCheck);
+        File testDir = tempFolder.newFolder(TestDir);
+        this.filename = testDir.getAbsolutePath();
+        this.reloadDatabase();
+        try (Transaction t = this.beginTransaction()) {
+            t.dropAllTables();
+        } finally {
+            this.db.waitAllTransactions();
+        }
+    }
+
+    @After
+    public void afterEach() {
+        if (!passedPreCheck) {
+            return;
+        }
+
+        this.lockManager.endLog();
+        if (TransactionContext.getTransaction() != null) {
+            TransactionContext.unsetTransaction();
+        }
+        this.db.close();
+    }
+
+    private Transaction beginTransaction() {
+        return db.beginTransaction();
+    }
+
     private List<RecordId> createTable(String tableName, int pages) {
         Schema s = TestUtils.createSchemaWithAllTypes();
         Record input = TestUtils.createRecordWithAllTypes();
         List<RecordId> rids = new ArrayList<>();
-        try(Transaction t1 = beginTransaction()) {
+        try (Transaction t1 = beginTransaction()) {
             t1.createTable(s, tableName);
             int numRecords = pages * t1.getTransactionContext().getTable(tableName).getNumRecordsPerPage();
             for (int i = 0; i < numRecords; ++i) {
@@ -165,7 +161,7 @@ public class TestDatabase2PL {
         List<RecordId> rids = createTable(tableName, 4);
         lockManager.startLog();
 
-        try(Transaction t1 = beginTransaction()) {
+        try (Transaction t1 = beginTransaction()) {
             // Read first record
             t1.getTransactionContext().getRecord(tableName, rids.get(0));
             // Read record on 3rd data page
@@ -223,7 +219,7 @@ public class TestDatabase2PL {
         List<RecordId> rids = createTable(tableName, 4);
         Record input = TestUtils.createRecordWithAllTypes();
 
-        try(Transaction t0 = beginTransaction()) {
+        try (Transaction t0 = beginTransaction()) {
             t0.getTransactionContext().deleteRecord(tableName, rids.get(rids.size() - 1));
         } finally {
             this.db.waitAllTransactions();
@@ -231,7 +227,7 @@ public class TestDatabase2PL {
 
         lockManager.startLog();
 
-        try(Transaction t1 = beginTransaction()) {
+        try (Transaction t1 = beginTransaction()) {
             t1.insert(tableName, input);
             // Insert a new record onto the last page of the table
             assertEquals(prepare(t1.getTransNum(),
@@ -249,14 +245,14 @@ public class TestDatabase2PL {
         List<RecordId> rids = createTable(tableName, 4);
         Record input = TestUtils.createRecordWithAllTypes();
 
-        try(Transaction t0 = beginTransaction()) {
+        try (Transaction t0 = beginTransaction()) {
             t0.getTransactionContext().deleteRecord(tableName, rids.get(rids.size() - 1));
         } finally {
             this.db.waitAllTransactions();
         }
 
         lockManager.startLog();
-        try(Transaction t1 = beginTransaction()) {
+        try (Transaction t1 = beginTransaction()) {
             // Read the first record
             t1.getTransactionContext().getRecord(tableName, rids.get(0));
             // Insert a new record onto the last page
@@ -282,7 +278,7 @@ public class TestDatabase2PL {
 
         lockManager.startLog();
 
-        try(Transaction t1 = beginTransaction()) {
+        try (Transaction t1 = beginTransaction()) {
             // Update the last record in the table
             t1.getTransactionContext().updateRecord(tableName, rids.get(rids.size() - 1), input);
 
@@ -302,7 +298,7 @@ public class TestDatabase2PL {
 
         lockManager.startLog();
 
-        try(Transaction t1 = beginTransaction()) {
+        try (Transaction t1 = beginTransaction()) {
             // Delete the last record in the table
             t1.getTransactionContext().deleteRecord(tableName, rids.get(rids.size() - 1));
             assertEquals(prepare(t1.getTransNum(),

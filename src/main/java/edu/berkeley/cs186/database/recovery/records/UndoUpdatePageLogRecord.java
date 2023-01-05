@@ -15,15 +15,15 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class UndoUpdatePageLogRecord extends LogRecord {
+    public short offset;
+    public byte[] after;
     private long transNum;
     private long pageNum;
     private long prevLSN;
     private long undoNextLSN;
-    public short offset;
-    public byte[] after;
 
     public UndoUpdatePageLogRecord(long transNum, long pageNum, long prevLSN, long undoNextLSN, short offset,
-                            byte[] after) {
+                                   byte[] after) {
         super(LogType.UNDO_UPDATE_PAGE);
         this.transNum = transNum;
         this.pageNum = pageNum;
@@ -31,6 +31,23 @@ public class UndoUpdatePageLogRecord extends LogRecord {
         this.undoNextLSN = undoNextLSN;
         this.offset = offset;
         this.after = after;
+    }
+
+    public static Optional<LogRecord> fromBytes(Buffer buf) {
+        long transNum = buf.getLong();
+        long pageNum = buf.getLong();
+        long prevLSN = buf.getLong();
+        long undoNextLSN = buf.getLong();
+        short offset = buf.getShort();
+        short length = buf.getShort();
+        if (length < 0) {
+            length = BufferManager.EFFECTIVE_PAGE_SIZE;
+            buf.position(buf.position() - 1);
+        }
+        byte[] after = new byte[length];
+        buf.get(after);
+        return Optional.of(new UndoUpdatePageLogRecord(transNum, pageNum, prevLSN, undoNextLSN, offset,
+                after));
     }
 
     @Override
@@ -76,50 +93,39 @@ public class UndoUpdatePageLogRecord extends LogRecord {
     public byte[] toBytes() {
         byte[] b = new byte[(after.length == BufferManager.EFFECTIVE_PAGE_SIZE ? 36 : 37) + after.length];
         Buffer buf = ByteBuffer.wrap(b)
-                     .put((byte) getType().getValue())
-                     .putLong(transNum)
-                     .putLong(pageNum)
-                     .putLong(prevLSN)
-                     .putLong(undoNextLSN)
-                     .putShort(offset);
+                .put((byte) getType().getValue())
+                .putLong(transNum)
+                .putLong(pageNum)
+                .putLong(prevLSN)
+                .putLong(undoNextLSN)
+                .putShort(offset);
         // to make sure that the CLR can actually fit on one page...
         if (after.length == BufferManager.EFFECTIVE_PAGE_SIZE) {
-            buf.put((byte) - 1).put(after);
+            buf.put((byte) -1).put(after);
         } else {
             buf.putShort((short) after.length).put(after);
         }
         return b;
     }
 
-    public static Optional<LogRecord> fromBytes(Buffer buf) {
-        long transNum = buf.getLong();
-        long pageNum = buf.getLong();
-        long prevLSN = buf.getLong();
-        long undoNextLSN = buf.getLong();
-        short offset = buf.getShort();
-        short length = buf.getShort();
-        if (length < 0) {
-            length = BufferManager.EFFECTIVE_PAGE_SIZE;
-            buf.position(buf.position() - 1);
-        }
-        byte[] after = new byte[length];
-        buf.get(after);
-        return Optional.of(new UndoUpdatePageLogRecord(transNum, pageNum, prevLSN, undoNextLSN, offset,
-                           after));
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         UndoUpdatePageLogRecord that = (UndoUpdatePageLogRecord) o;
         return transNum == that.transNum &&
-               pageNum == that.pageNum &&
-               offset == that.offset &&
-               prevLSN == that.prevLSN &&
-               undoNextLSN == that.undoNextLSN &&
-               Arrays.equals(after, that.after);
+                pageNum == that.pageNum &&
+                offset == that.offset &&
+                prevLSN == that.prevLSN &&
+                undoNextLSN == that.undoNextLSN &&
+                Arrays.equals(after, that.after);
     }
 
     @Override
@@ -132,13 +138,13 @@ public class UndoUpdatePageLogRecord extends LogRecord {
     @Override
     public String toString() {
         return "UndoUpdatePageLogRecord{" +
-               "transNum=" + transNum +
-               ", pageNum=" + pageNum +
-               ", prevLSN=" + prevLSN +
-               ", undoNextLSN=" + undoNextLSN +
-               ", offset=" + offset +
-               ", after=" + Arrays.toString(after) +
-               ", LSN=" + LSN +
-               '}';
+                "transNum=" + transNum +
+                ", pageNum=" + pageNum +
+                ", prevLSN=" + prevLSN +
+                ", undoNextLSN=" + undoNextLSN +
+                ", offset=" + offset +
+                ", after=" + Arrays.toString(after) +
+                ", LSN=" + LSN +
+                '}';
     }
 }

@@ -1,16 +1,16 @@
 package edu.berkeley.cs186.database.concurrency;
 
 import edu.berkeley.cs186.database.TimeoutScaling;
-import edu.berkeley.cs186.database.categories.*;
+import edu.berkeley.cs186.database.categories.Proj4Part1Tests;
+import edu.berkeley.cs186.database.categories.Proj4Tests;
+import edu.berkeley.cs186.database.categories.PublicTests;
+import edu.berkeley.cs186.database.categories.SystemTests;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
-
-import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -24,8 +24,8 @@ public class TestLockType {
     /**
      * Compatibility Matrix
      * (Boolean value in cell answers is `left` compatible with `top`?)
-     *
-     *     | NL  | IS  | IX  |  S  | SIX |  X
+     * <p>
+     * | NL  | IS  | IX  |  S  | SIX |  X
      * ----+-----+-----+-----+-----+-----+-----
      * NL  |  T  |  T  |  T  |  T  |  T  |  T
      * ----+-----+-----+-----+-----+-----+-----
@@ -39,7 +39,7 @@ public class TestLockType {
      * ----+-----+-----+-----+-----+-----+-----
      * X   |  T  |     |     |  F  |     |  F
      * ----+-----+-----+-----+-----+-----+-----
-     *
+     * <p>
      * The filled in cells are covered by the public tests.
      * You can expect the blank cells to be covered by the hidden tests!
      * Hint: I bet the notes might have something useful for this...
@@ -112,8 +112,8 @@ public class TestLockType {
     /**
      * Parent Matrix
      * (Boolean value in cell answers can `left` be the parent of `top`?)
-     *
-     *     | NL  | IS  | IX  |  S  | SIX |  X
+     * <p>
+     * | NL  | IS  | IX  |  S  | SIX |  X
      * ----+-----+-----+-----+-----+-----+-----
      * NL  |  T  |  F  |  F  |  F  |  F  |  F
      * ----+-----+-----+-----+-----+-----+-----
@@ -127,7 +127,7 @@ public class TestLockType {
      * ----+-----+-----+-----+-----+-----+-----
      * X   |  T  |     |     |     |     |
      * ----+-----+-----+-----+-----+-----+-----
-     *
+     * <p>
      * The filled in cells are covered by the public test.
      * You can expect the blank cells to be covered by the hidden tests!
      */
@@ -174,8 +174,8 @@ public class TestLockType {
     /**
      * Substitutability Matrix
      * (Values along left are `substitute`, values along top are `required`)
-     *
-     *     | NL  | IS  | IX  |  S  | SIX |  X
+     * <p>
+     * | NL  | IS  | IX  |  S  | SIX |  X
      * ----+-----+-----+-----+-----+-----+-----
      * NL  |  T  |  F  |  F  |  F  |  F  |  F
      * ----+-----+-----+-----+-----+-----+-----
@@ -189,13 +189,13 @@ public class TestLockType {
      * ----+-----+-----+-----+-----+-----+-----
      * X   |     |     |     |  T  |     |  T
      * ----+-----+-----+-----+-----+-----+-----
-     *
+     * <p>
      * The filled in cells are covered by the public test.
      * You can expect the blank cells to be covered by the hidden tests!
-     *
+     * <p>
      * The boolean value in the cell answers the question:
      * "Can `left` substitute `top`?"
-     *
+     * <p>
      * or alternatively:
      * "Are the privileges of `left` a superset of those of `top`?"
      */

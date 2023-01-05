@@ -17,9 +17,9 @@ class GroupByOperator extends QueryOperator {
     /**
      * Create a new GroupByOperator that pulls from source and groups by groupByColumn.
      *
-     * @param source the source operator of this operator
+     * @param source      the source operator of this operator
      * @param transaction the transaction containing this operator
-     * @param columns the columns to group on
+     * @param columns     the columns to group on
      */
     GroupByOperator(QueryOperator source,
                     TransactionContext transaction,
@@ -29,10 +29,10 @@ class GroupByOperator extends QueryOperator {
         this.transaction = transaction;
         this.groupByColumns = new ArrayList<>();
         this.groupByColumnIndices = new ArrayList<>();
-        for (String column: columns) {
+        for (String column : columns) {
             this.groupByColumns.add(sourceSchema.matchFieldName(column));
         }
-        for (String groupByColumn: this.groupByColumns) {
+        for (String groupByColumn : this.groupByColumns) {
             this.groupByColumnIndices.add(sourceSchema.getFieldNames().indexOf(groupByColumn));
         }
 
@@ -60,7 +60,7 @@ class GroupByOperator extends QueryOperator {
         if (this.groupByColumns.size() == 1) columns = groupByColumns.get(0);
         else columns = "(" + String.join(", ", groupByColumns) + ")";
         return "Group By (cost=" + this.estimateIOCost() + ")" +
-               "\n  columns: " + columns;
+                "\n  columns: " + columns;
     }
 
     /**
@@ -77,7 +77,7 @@ class GroupByOperator extends QueryOperator {
     public int estimateIOCost() {
         int numBuffers = this.transaction.getWorkMemSize();
         int N = getSource().estimateStats().getNumPages();
-        double pass0Runs = Math.ceil(N / (double)numBuffers);
+        double pass0Runs = Math.ceil(N / (double) numBuffers);
         double numPasses = 1 + Math.ceil(Math.log(pass0Runs) / Math.log(numBuffers - 1));
         return (int) (2 * N * numPasses) + getSource().estimateIOCost();
     }
@@ -101,13 +101,14 @@ class GroupByOperator extends QueryOperator {
             while (sourceIterator.hasNext()) {
                 Record record = sourceIterator.next();
                 List<DataBox> values = new ArrayList<>();
-                for (int index: groupByColumnIndices) {
+                for (int index : groupByColumnIndices) {
                     values.add(record.getValue(index));
                 }
                 Record key = new Record(values);
                 String tableName;
                 if (this.hashGroupTempTables.containsKey(key)) {
-                    tableName = this.hashGroupTempTables.get(key);;
+                    tableName = this.hashGroupTempTables.get(key);
+                    ;
                 } else {
                     tableName = GroupByOperator.this.transaction.createTempTable(
                             GroupByOperator.this.getSource().getSchema());

@@ -15,26 +15,26 @@ public class TestRecord {
     @Test
     public void testToAndFromBytes() {
         Schema[] schemas = {
-            new Schema().add("x", Type.boolType()),
-            new Schema().add("x",Type.intType()),
-            new Schema().add("x", Type.floatType()),
-            new Schema().add("x", Type.stringType(3)),
-            new Schema()
-                .add("w", Type.boolType())
-                .add("x", Type.intType())
-                .add("y", Type.floatType())
-                .add("z", Type.stringType(3))
+                new Schema().add("x", Type.boolType()),
+                new Schema().add("x", Type.intType()),
+                new Schema().add("x", Type.floatType()),
+                new Schema().add("x", Type.stringType(3)),
+                new Schema()
+                        .add("w", Type.boolType())
+                        .add("x", Type.intType())
+                        .add("y", Type.floatType())
+                        .add("z", Type.stringType(3))
         };
 
         Record[] records = {
-            new Record(false),
-            new Record(0),
-            new Record(0f),
-            new Record("foo"),
-            new Record(false, 0, 0f, "foo")
+                new Record(false),
+                new Record(0),
+                new Record(0f),
+                new Record("foo"),
+                new Record(false, 0, 0f, "foo")
         };
 
-        assert(schemas.length == records.length);
+        assert (schemas.length == records.length);
         for (int i = 0; i < schemas.length; ++i) {
             Schema s = schemas[i];
             Record r = records[i];

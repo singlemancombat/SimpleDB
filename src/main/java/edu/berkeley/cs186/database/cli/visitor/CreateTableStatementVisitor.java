@@ -40,15 +40,18 @@ class CreateTableStatementVisitor extends StatementVisitor {
         String fieldTypeStr = (String) components[1];
         Token param = (Token) components[2];
         Type fieldType = Type.intType();
-        switch(fieldTypeStr.toLowerCase()) {
-            case "int":;
+        switch (fieldTypeStr.toLowerCase()) {
+            case "int":
+                ;
             case "integer":
                 fieldType = Type.intType();
                 break;
-            case "char":;
-            case "varchar":;
+            case "char":
+                ;
+            case "varchar":
+                ;
             case "string":
-                if(param == null) {
+                if (param == null) {
                     errorMessages.add(String.format("Missing length for %s(n).", fieldType));
                     return;
                 }
@@ -65,14 +68,15 @@ class CreateTableStatementVisitor extends StatementVisitor {
             case "long":
                 fieldType = Type.longType();
                 break;
-            case "bool":;
+            case "bool":
+                ;
             case "boolean":
                 fieldType = Type.boolType();
                 break;
             default:
-                assert false: String.format(
-                    "Invalid field type \"%s\"",
-                    fieldTypeStr
+                assert false : String.format(
+                        "Invalid field type \"%s\"",
+                        fieldTypeStr
                 );
         }
         schema.add(fieldName, fieldType);
@@ -81,7 +85,7 @@ class CreateTableStatementVisitor extends StatementVisitor {
     public void execute(Transaction transaction, PrintStream out) {
         // transaction
         if (this.errorMessages.size() > 0) {
-            for(String msg: errorMessages) {
+            for (String msg : errorMessages) {
                 out.println(msg);
             }
             out.println("Failed to execute CREATE TABLE.");

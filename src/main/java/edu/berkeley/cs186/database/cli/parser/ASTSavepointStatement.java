@@ -4,17 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTSavepointStatement extends SimpleNode {
-  public ASTSavepointStatement(int id) {
-    super(id);
-  }
+    public ASTSavepointStatement(int id) {
+        super(id);
+    }
 
-  public ASTSavepointStatement(RookieParser p, int id) {
-    super(p, id);
-  }
+    public ASTSavepointStatement(RookieParser p, int id) {
+        super(p, id);
+    }
 
-  /** Accept the visitor. **/
-  public void jjtAccept(RookieParserVisitor visitor, Object data) {
-    visitor.visit(this, data);
-  }
+    /**
+     * Accept the visitor.
+     **/
+    public void jjtAccept(RookieParserVisitor visitor, Object data) {
+        visitor.visit(this, data);
+    }
 }
 /* JavaCC - OriginalChecksum=ef087f42082414a62c9a51a53d5f7f92 (do not edit this line) */

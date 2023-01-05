@@ -44,7 +44,7 @@ public class TestBoolDataBox {
 
     @Test
     public void testToAndFromBytes() {
-        for (boolean b : new boolean[] {true, false}) {
+        for (boolean b : new boolean[]{true, false}) {
             BoolDataBox d = new BoolDataBox(b);
             byte[] bytes = d.toBytes();
             assertEquals(d, DataBox.fromBytes(ByteBuffer.wrap(bytes), Type.boolType()));

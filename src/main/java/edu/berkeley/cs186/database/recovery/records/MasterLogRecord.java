@@ -16,6 +16,10 @@ public class MasterLogRecord extends LogRecord {
         this.lastCheckpointLSN = lastCheckpointLSN;
     }
 
+    public static Optional<LogRecord> fromBytes(Buffer buf) {
+        return Optional.of(new MasterLogRecord(buf.getLong()));
+    }
+
     @Override
     public byte[] toBytes() {
         byte[] b = new byte[1 + Long.BYTES];
@@ -23,15 +27,17 @@ public class MasterLogRecord extends LogRecord {
         return b;
     }
 
-    public static Optional<LogRecord> fromBytes(Buffer buf) {
-        return Optional.of(new MasterLogRecord(buf.getLong()));
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         MasterLogRecord that = (MasterLogRecord) o;
         return lastCheckpointLSN == that.lastCheckpointLSN;
     }
@@ -44,8 +50,8 @@ public class MasterLogRecord extends LogRecord {
     @Override
     public String toString() {
         return "MasterLogRecord{" +
-               "lastCheckpointLSN=" + lastCheckpointLSN +
-               ", LSN=" + LSN +
-               '}';
+                "lastCheckpointLSN=" + lastCheckpointLSN +
+                ", LSN=" + LSN +
+                '}';
     }
 }

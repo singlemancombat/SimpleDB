@@ -12,9 +12,9 @@ public class LockUtil {
     /**
      * Ensure that the current transaction can perform actions requiring
      * `requestType` on `lockContext`.
-     *
+     * <p>
      * `requestType` is guaranteed to be one of: S, X, NL.
-     *
+     * <p>
      * This method should promote/escalate/acquire as needed, but should only
      * grant the least permissive set of locks needed. We recommend that you
      * think about what to do in each of the following cases:
@@ -22,9 +22,9 @@ public class LockUtil {
      * - The current lock type is IX and the requested lock is S
      * - The current lock type is an intent lock
      * - None of the above: In this case, consider what values the explicit
-     *   lock type can be, and think about how ancestor looks will need to be
-     *   acquired or changed.
-     *
+     * lock type can be, and think about how ancestor looks will need to be
+     * acquired or changed.
+     * <p>
      * You may find it useful to create a helper method that ensures you have
      * the appropriate locks on all ancestors.
      */

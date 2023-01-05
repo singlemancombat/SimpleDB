@@ -18,23 +18,11 @@ public abstract class QueryOperator implements Iterable<Record> {
     protected QueryOperator source;
     protected Schema outputSchema;
     protected TableStats stats;
-
-    public enum OperatorType {
-        PROJECT,
-        SEQ_SCAN,
-        INDEX_SCAN,
-        JOIN,
-        SELECT,
-        GROUP_BY,
-        SORT,
-        LIMIT,
-        MATERIALIZE
-    }
-
     private OperatorType type;
 
     /**
      * Creates a QueryOperator without a set source, destination, or schema.
+     *
      * @param type the operator's type (Join, Project, Select, etc...)
      */
     public QueryOperator(OperatorType type) {
@@ -46,13 +34,46 @@ public abstract class QueryOperator implements Iterable<Record> {
     /**
      * Creates a QueryOperator with a set source, and computes the output schema
      * accordingly.
-     * @param type the operator's type (Join, Project, Select, etc...)
+     *
+     * @param type   the operator's type (Join, Project, Select, etc...)
      * @param source the source operator
      */
     protected QueryOperator(OperatorType type, QueryOperator source) {
         this.source = source;
         this.type = type;
         this.outputSchema = this.computeSchema();
+    }
+
+    /**
+     * @param records  an iterator of records
+     * @param schema   the schema of the records yielded from `records`
+     * @param maxPages the maximum number of pages worth of records to consume
+     * @return This method will consume up to `maxPages` pages of records from
+     * `records` (advancing it in the process) and return a backtracking
+     * iterator over those records. Setting maxPages to 1 will result in an
+     * iterator over a single page of records.
+     */
+    public static BacktrackingIterator<Record> getBlockIterator(Iterator<Record> records, Schema schema, int maxPages) {
+        int recordsPerPage = Table.computeNumRecordsPerPage(PageDirectory.EFFECTIVE_PAGE_SIZE, schema);
+        int maxRecords = recordsPerPage * maxPages;
+        List<Record> blockRecords = new ArrayList<>();
+        for (int i = 0; i < maxRecords && records.hasNext(); i++) {
+            blockRecords.add(records.next());
+        }
+        return new ArrayBacktrackingIterator<>(blockRecords);
+    }
+
+    /**
+     * @param operator    a query operator to materialize
+     * @param transaction the transaction the materialized table will be created
+     *                    within
+     * @return A new MaterializedOperator that draws from the records of `operator`
+     */
+    public static QueryOperator materialize(QueryOperator operator, TransactionContext transaction) {
+        if (!operator.materialized()) {
+            return new MaterializeOperator(operator, transaction);
+        }
+        return operator;
     }
 
     /**
@@ -141,6 +162,7 @@ public abstract class QueryOperator implements Iterable<Record> {
 
     /**
      * Computes the schema of this operator's output records.
+     *
      * @return a schema matching the schema of the records of the iterator
      * obtained by calling .iterator()
      */
@@ -160,47 +182,15 @@ public abstract class QueryOperator implements Iterable<Record> {
     }
 
     /**
-     * @throws UnsupportedOperationException if this operator doesn't support
-     * backtracking
      * @return A backtracking iterator over the records of this operator
+     * @throws UnsupportedOperationException if this operator doesn't support
+     *                                       backtracking
      */
     public BacktrackingIterator<Record> backtrackingIterator() {
         throw new UnsupportedOperationException(
-            "This operator doesn't support backtracking. You may want to " +
-            "use QueryOperator.materialize on it first."
+                "This operator doesn't support backtracking. You may want to " +
+                        "use QueryOperator.materialize on it first."
         );
-    }
-
-    /**
-     * @param records an iterator of records
-     * @param schema the schema of the records yielded from `records`
-     * @param maxPages the maximum number of pages worth of records to consume
-     * @return This method will consume up to `maxPages` pages of records from
-     * `records` (advancing it in the process) and return a backtracking
-     * iterator over those records. Setting maxPages to 1 will result in an
-     * iterator over a single page of records.
-     */
-    public static BacktrackingIterator<Record> getBlockIterator(Iterator<Record> records, Schema schema, int maxPages) {
-        int recordsPerPage = Table.computeNumRecordsPerPage(PageDirectory.EFFECTIVE_PAGE_SIZE, schema);
-        int maxRecords = recordsPerPage * maxPages;
-        List<Record> blockRecords = new ArrayList<>();
-        for (int i = 0; i < maxRecords && records.hasNext(); i++) {
-            blockRecords.add(records.next());
-        }
-        return new ArrayBacktrackingIterator<>(blockRecords);
-    }
-
-    /**
-     * @param operator a query operator to materialize
-     * @param transaction the transaction the materialized table will be created
-     *                    within
-     * @return A new MaterializedOperator that draws from the records of `operator`
-     */
-    public static QueryOperator materialize(QueryOperator operator, TransactionContext transaction) {
-        if (!operator.materialized()) {
-            return new MaterializeOperator(operator, transaction);
-        }
-        return operator;
     }
 
     public abstract String str();
@@ -226,5 +216,17 @@ public abstract class QueryOperator implements Iterable<Record> {
      * @return estimated number of IO's performed
      */
     public abstract int estimateIOCost();
+
+    public enum OperatorType {
+        PROJECT,
+        SEQ_SCAN,
+        INDEX_SCAN,
+        JOIN,
+        SELECT,
+        GROUP_BY,
+        SORT,
+        LIMIT,
+        MATERIALIZE
+    }
 
 }

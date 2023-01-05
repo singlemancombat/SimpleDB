@@ -14,28 +14,28 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * An implementation of a disk space manager with virtual page translation, and
  * two levels of header pages, allowing for (with page size of 4K) 256G worth of data per partition:
- *
- *                                           [master page]
- *                  /                              |                               \
- *           [header page]                                                    [header page]
- *     /    |     |     |     \                   ...                   /    |     |     |     \
+ * <p>
+ * [master page]
+ * /                              |                               \
+ * [header page]                                                    [header page]
+ * /    |     |     |     \                   ...                   /    |     |     |     \
  * [data] [data] ... [data] [data]                                   [data] [data] ... [data] [data]
- *
+ * <p>
  * Each header page stores a bitmap, indicating whether each of the data pages has been allocated,
  * and manages 32K pages. The master page stores 16-bit integers for each of the header pages indicating
  * the number of data pages that have been allocated under the header page (managing 2K header pages).
  * A single partition may therefore have a maximum of 64M data pages.
- *
+ * <p>
  * Master and header pages are cached permanently in memory; changes to these are immediately flushed to
  * disk. This imposes a fairly small memory overhead (128M partitions have 2 pages cached). This caching
  * is done separately from the buffer manager's caching.
- *
+ * <p>
  * Virtual page numbers are 64-bit integers (Java longs) assigned to data pages in the following format:
- *       partition number * 10^10 + n
+ * partition number * 10^10 + n
  * for the n-th data page of the partition (indexed from 0). This particular format (instead of a simpler
  * scheme such as assigning the upper 32 bits to partition number and lower 32 to page number) was chosen
  * for ease of debugging (it's easier to read 10000000006 as part 1 page 6, than it is to decipher 4294967302).
- *
+ * <p>
  * Partitions are backed by OS level files (one OS level file per partition), and are stored in the following
  * manner:
  * - the master page is the 0th page of the OS file

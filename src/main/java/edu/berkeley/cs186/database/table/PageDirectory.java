@@ -20,22 +20,22 @@ import java.util.Random;
 /**
  * An implementation of a heap file, using a page directory. Assumes data pages are packed (but record
  * lengths do not need to be fixed-length).
- *
+ * <p>
  * Header pages are layed out as follows:
  * - first byte: 0x1 to indicate valid allocated page
  * - next 4 bytes: page directory id
  * - next 8 bytes: page number of next header page, or -1 (0xFFFFFFFFFFFFFFFF) if no next header page.
  * - next 10 bytes: page number of data page (or -1), followed by 2 bytes of amount of free space
  * - repeat 10 byte entries
- *
+ * <p>
  * Data pages contain a small header containing:
  * - 4-byte page directory id
  * - 4-byte index of which header page manages it
  * - 2-byte offset indicating which slot in the header page its data page entry resides
- *
+ * <p>
  * This header is used to quickly locate and update the header page when the amount of free space on the data page
  * changes, as well as ensure that we do not modify pages in other page directories by accident.
- *
+ * <p>
  * The page directory id is a randomly generated 32-bit integer used to help detect bugs (where we attempt
  * to write to a page that is not managed by the page directory).
  */
@@ -76,12 +76,13 @@ public class PageDirectory implements BacktrackingIterable<Page> {
     /**
      * Creates a new heap file, or loads existing file if one already
      * exists at partNum.
-     * @param bufferManager buffer manager
-     * @param partNum partition to allocate new header pages in (can be different partition
-     *                from data pages)
-     * @param pageNum first header page of heap file
+     *
+     * @param bufferManager         buffer manager
+     * @param partNum               partition to allocate new header pages in (can be different partition
+     *                              from data pages)
+     * @param pageNum               first header page of heap file
      * @param emptyPageMetadataSize size of metadata on an empty page
-     * @param lockContext lock context of this heap file
+     * @param lockContext           lock context of this heap file
      */
     public PageDirectory(BufferManager bufferManager, int partNum, long pageNum,
                          short emptyPageMetadataSize, LockContext lockContext) {
@@ -212,6 +213,10 @@ public class PageDirectory implements BacktrackingIterable<Page> {
             this.freeSpace = freeSpace;
         }
 
+        private static DataPageEntry fromBytes(Buffer b) {
+            return new DataPageEntry(b.getLong(), b.getShort());
+        }
+
         // returns if data page entry refers to a valid data page
         private boolean isValid() {
             return this.pageNum != DiskSpaceManager.INVALID_PAGE_NUM;
@@ -219,10 +224,6 @@ public class PageDirectory implements BacktrackingIterable<Page> {
 
         private void toBytes(Buffer b) {
             b.putLong(pageNum).putShort(freeSpace);
-        }
-
-        private static DataPageEntry fromBytes(Buffer b) {
-            return new DataPageEntry(b.getLong(), b.getShort());
         }
 
         @Override
@@ -340,7 +341,7 @@ public class PageDirectory implements BacktrackingIterable<Page> {
                 if (unusedSlot != -1) {
                     Page page = bufferManager.fetchNewPage(lockContext, partNum);
                     DataPageEntry dpe = new DataPageEntry(page.getPageNum(),
-                                                          (short) (EFFECTIVE_PAGE_SIZE - emptyPageMetadataSize - requiredSpace));
+                            (short) (EFFECTIVE_PAGE_SIZE - emptyPageMetadataSize - requiredSpace));
 
                     b.position(HEADER_HEADER_SIZE + DataPageEntry.SIZE * unusedSlot);
                     dpe.toBytes(b);

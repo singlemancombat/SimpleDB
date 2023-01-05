@@ -4,17 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTAliasedTableName extends SimpleNode {
-  public ASTAliasedTableName(int id) {
-    super(id);
-  }
+    public ASTAliasedTableName(int id) {
+        super(id);
+    }
 
-  public ASTAliasedTableName(RookieParser p, int id) {
-    super(p, id);
-  }
+    public ASTAliasedTableName(RookieParser p, int id) {
+        super(p, id);
+    }
 
-  /** Accept the visitor. **/
-  public void jjtAccept(RookieParserVisitor visitor, Object data) {
-    visitor.visit(this, data);
-  }
+    /**
+     * Accept the visitor.
+     **/
+    public void jjtAccept(RookieParserVisitor visitor, Object data) {
+        visitor.visit(this, data);
+    }
 }
 /* JavaCC - OriginalChecksum=e0276ec514092546c521ac2191708da7 (do not edit this line) */

@@ -25,7 +25,7 @@ public class TestBufferManager {
     public void beforeEach() {
         diskSpaceManager = new MemoryDiskSpaceManager();
         bufferManager = new BufferManager(diskSpaceManager, new DummyRecoveryManager(), 5,
-                                              new ClockEvictionPolicy());
+                new ClockEvictionPolicy());
     }
 
     @After
@@ -81,7 +81,7 @@ public class TestBufferManager {
     public void testReadWrite() {
         int partNum = diskSpaceManager.allocPart(1);
 
-        byte[] expected = new byte[] { (byte) 0xDE, (byte) 0xAD, (byte) 0xBE, (byte) 0xEF };
+        byte[] expected = new byte[]{(byte) 0xDE, (byte) 0xAD, (byte) 0xBE, (byte) 0xEF};
         byte[] actual = new byte[4];
 
         BufferFrame frame1 = bufferManager.fetchNewPageFrame(partNum);
@@ -96,7 +96,7 @@ public class TestBufferManager {
     public void testFlush() {
         int partNum = diskSpaceManager.allocPart(1);
 
-        byte[] expected = new byte[] { (byte) 0xDE, (byte) 0xAD, (byte) 0xBE, (byte) 0xEF };
+        byte[] expected = new byte[]{(byte) 0xDE, (byte) 0xAD, (byte) 0xBE, (byte) 0xEF};
         byte[] actual = new byte[DiskSpaceManager.PAGE_SIZE];
 
         BufferFrame frame1 = bufferManager.fetchNewPageFrame(partNum);
@@ -105,12 +105,12 @@ public class TestBufferManager {
 
         diskSpaceManager.readPage(frame1.getPageNum(), actual);
         assertArrayEquals(new byte[4], Arrays.copyOfRange(actual, 67 + BufferManager.RESERVED_SPACE,
-                          71 + BufferManager.RESERVED_SPACE));
+                71 + BufferManager.RESERVED_SPACE));
 
         frame1.flush();
         diskSpaceManager.readPage(frame1.getPageNum(), actual);
         assertArrayEquals(expected, Arrays.copyOfRange(actual, 67 + BufferManager.RESERVED_SPACE,
-                          71 + BufferManager.RESERVED_SPACE));
+                71 + BufferManager.RESERVED_SPACE));
 
         frame1.pin();
         frame1.writeBytes((short) 33, (short) 4, expected);
@@ -118,7 +118,7 @@ public class TestBufferManager {
 
         diskSpaceManager.readPage(frame1.getPageNum(), actual);
         assertArrayEquals(new byte[4], Arrays.copyOfRange(actual, 33 + BufferManager.RESERVED_SPACE,
-                          37 + BufferManager.RESERVED_SPACE));
+                37 + BufferManager.RESERVED_SPACE));
 
         // force a eviction
         bufferManager.fetchNewPageFrame(partNum).unpin();
@@ -134,14 +134,14 @@ public class TestBufferManager {
         diskSpaceManager.readPage(frame1.getPageNum(), actual);
         assertFalse(frame1.isValid());
         assertArrayEquals(expected, Arrays.copyOfRange(actual, 33 + BufferManager.RESERVED_SPACE,
-                          37 + BufferManager.RESERVED_SPACE));
+                37 + BufferManager.RESERVED_SPACE));
     }
 
     @Test
     public void testFlushLogPage() {
         int partNum = diskSpaceManager.allocPart(0);
 
-        byte[] expected = new byte[] { (byte) 0xDE, (byte) 0xAD, (byte) 0xBE, (byte) 0xEF };
+        byte[] expected = new byte[]{(byte) 0xDE, (byte) 0xAD, (byte) 0xBE, (byte) 0xEF};
         byte[] actual = new byte[DiskSpaceManager.PAGE_SIZE];
 
         BufferFrame frame1 = bufferManager.fetchNewPageFrame(partNum);
@@ -182,7 +182,7 @@ public class TestBufferManager {
     public void testReload() {
         int partNum = diskSpaceManager.allocPart(1);
 
-        byte[] expected = new byte[] { (byte) 0xDE, (byte) 0xAD, (byte) 0xBE, (byte) 0xEF };
+        byte[] expected = new byte[]{(byte) 0xDE, (byte) 0xAD, (byte) 0xBE, (byte) 0xEF};
         byte[] actual = new byte[4];
 
         BufferFrame frame1 = bufferManager.fetchNewPageFrame(partNum);
@@ -214,7 +214,7 @@ public class TestBufferManager {
     public void testRequestValidFrame() {
         int partNum = diskSpaceManager.allocPart(1);
 
-        byte[] expected = new byte[] { (byte) 0xDE, (byte) 0xAD, (byte) 0xBE, (byte) 0xEF };
+        byte[] expected = new byte[]{(byte) 0xDE, (byte) 0xAD, (byte) 0xBE, (byte) 0xEF};
         byte[] actual = new byte[4];
 
         BufferFrame frame1 = bufferManager.fetchNewPageFrame(partNum);
@@ -266,7 +266,7 @@ public class TestBufferManager {
             fail();
         } catch (PageException e) { /* do nothing */ }
 
-        BufferFrame frame6  = bufferManager.fetchNewPageFrame(partNum);
+        BufferFrame frame6 = bufferManager.fetchNewPageFrame(partNum);
         frame6.unpin();
         assertTrue(frame1.isValid());
         assertTrue(frame2.isValid());
@@ -307,8 +307,8 @@ public class TestBufferManager {
             fail();
         } catch (Exception e) { /* do nothing */ }
 
-        BufferFrame frame6  = bufferManager.fetchNewPageFrame(partNum2);
-        BufferFrame frame7  = bufferManager.fetchNewPageFrame(partNum2);
+        BufferFrame frame6 = bufferManager.fetchNewPageFrame(partNum2);
+        BufferFrame frame7 = bufferManager.fetchNewPageFrame(partNum2);
         frame6.unpin();
         frame7.unpin();
         assertFalse(frame1.isValid());

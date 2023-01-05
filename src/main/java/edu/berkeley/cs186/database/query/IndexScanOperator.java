@@ -25,8 +25,8 @@ class IndexScanOperator extends QueryOperator {
      * An index scan operator.
      *
      * @param transaction the transaction containing this operator
-     * @param tableName the table to iterate over
-     * @param columnName the name of the column the index is on
+     * @param tableName   the table to iterate over
+     * @param columnName  the name of the column the index is on
      */
     IndexScanOperator(TransactionContext transaction,
                       String tableName,
@@ -52,8 +52,8 @@ class IndexScanOperator extends QueryOperator {
     @Override
     public String str() {
         return String.format("Index Scan for %s%s%s on %s (cost=%d)",
-            this.columnName, this.predicate.toSymbol(), this.value, this.tableName,
-            this.estimateIOCost());
+                this.columnName, this.predicate.toSymbol(), this.value, this.tableName,
+                this.estimateIOCost());
     }
 
     /**
@@ -69,8 +69,8 @@ class IndexScanOperator extends QueryOperator {
     public TableStats estimateStats() {
         TableStats stats = this.transaction.getStats(this.tableName);
         return stats.copyWithPredicate(this.columnIndex,
-                                       this.predicate,
-                                       this.value);
+                this.predicate,
+                this.value);
     }
 
     @Override
@@ -80,7 +80,7 @@ class IndexScanOperator extends QueryOperator {
         TableStats tableStats = transaction.getStats(tableName);
 
         int count = tableStats.getHistograms().get(columnIndex).copyWithPredicate(predicate,
-                    value).getCount();
+                value).getCount();
         // 2 * order entries/leaf node, but leaf nodes are 50-100% full; we use a fill factor of
         // 75% as a rough estimate
         return (int) (height + Math.ceil(count / (1.5 * order)) + count);
@@ -112,19 +112,19 @@ class IndexScanOperator extends QueryOperator {
             this.nextRecord = null;
             if (IndexScanOperator.this.predicate == PredicateOperator.EQUALS) {
                 this.sourceIterator = IndexScanOperator.this.transaction.lookupKey(
-                                          IndexScanOperator.this.tableName,
-                                          IndexScanOperator.this.columnName,
-                                          IndexScanOperator.this.value);
+                        IndexScanOperator.this.tableName,
+                        IndexScanOperator.this.columnName,
+                        IndexScanOperator.this.value);
             } else if (IndexScanOperator.this.predicate == PredicateOperator.LESS_THAN ||
-                       IndexScanOperator.this.predicate == PredicateOperator.LESS_THAN_EQUALS) {
+                    IndexScanOperator.this.predicate == PredicateOperator.LESS_THAN_EQUALS) {
                 this.sourceIterator = IndexScanOperator.this.transaction.sortedScan(
-                                          IndexScanOperator.this.tableName,
-                                          IndexScanOperator.this.columnName);
+                        IndexScanOperator.this.tableName,
+                        IndexScanOperator.this.columnName);
             } else if (IndexScanOperator.this.predicate == PredicateOperator.GREATER_THAN) {
                 this.sourceIterator = IndexScanOperator.this.transaction.sortedScanFrom(
-                                          IndexScanOperator.this.tableName,
-                                          IndexScanOperator.this.columnName,
-                                          IndexScanOperator.this.value);
+                        IndexScanOperator.this.tableName,
+                        IndexScanOperator.this.columnName,
+                        IndexScanOperator.this.value);
                 while (this.sourceIterator.hasNext()) {
                     Record r = this.sourceIterator.next();
 
@@ -136,9 +136,9 @@ class IndexScanOperator extends QueryOperator {
                 }
             } else if (IndexScanOperator.this.predicate == PredicateOperator.GREATER_THAN_EQUALS) {
                 this.sourceIterator = IndexScanOperator.this.transaction.sortedScanFrom(
-                                          IndexScanOperator.this.tableName,
-                                          IndexScanOperator.this.columnName,
-                                          IndexScanOperator.this.value);
+                        IndexScanOperator.this.tableName,
+                        IndexScanOperator.this.columnName,
+                        IndexScanOperator.this.value);
             }
         }
 
@@ -159,7 +159,7 @@ class IndexScanOperator extends QueryOperator {
                 if (r.getValue(columnIndex).compareTo(value) <= 0) {
                     this.nextRecord = r;
                 }
-            } else  {
+            } else {
                 this.nextRecord = r;
             }
             return this.nextRecord != null;

@@ -57,7 +57,7 @@ class CommonTableExpressionVisitor extends RookieParserDefaultVisitor {
     }
 
     @Override
-    public void visit (ASTSelectStatement node, Object data) {
+    public void visit(ASTSelectStatement node, Object data) {
         this.child = node;
     }
 }

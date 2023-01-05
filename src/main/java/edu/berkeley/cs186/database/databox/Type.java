@@ -7,13 +7,13 @@ import java.util.Objects;
 
 /**
  * There are five primitive types:
- *
- *   1. 1-byte booleans (Type.boolType()),
- *   2. 4-byte integers (Type.intType()),
- *   3. 4-byte floats (Type.floatType()), and
- *   4. n-byte strings (Type.stringType(n)) where n > 0.
- *   5. 8-byte integers (Type.longType())
- *
+ * <p>
+ * 1. 1-byte booleans (Type.boolType()),
+ * 2. 4-byte integers (Type.intType()),
+ * 3. 4-byte floats (Type.floatType()), and
+ * 4. n-byte strings (Type.stringType(n)) where n > 0.
+ * 5. 8-byte integers (Type.longType())
+ * <p>
  * Note that n-byte strings and m-byte strings are considered different types
  * when n != m.
  */
@@ -64,6 +64,62 @@ public class Type {
         return new Type(TypeId.BYTE_ARRAY, n);
     }
 
+    public static Type fromBytes(Buffer buf) {
+        int ordinal = buf.getInt();
+        int sizeInBytes = buf.getInt();
+        switch (TypeId.fromInt(ordinal)) {
+            case BOOL:
+                assert (sizeInBytes == 1);
+                return Type.boolType();
+            case INT:
+                assert (sizeInBytes == Integer.BYTES);
+                return Type.intType();
+            case FLOAT:
+                assert (sizeInBytes == Float.BYTES);
+                return Type.floatType();
+            case STRING:
+                return Type.stringType(sizeInBytes);
+            case LONG:
+                assert (sizeInBytes == Long.BYTES);
+                return Type.longType();
+            case BYTE_ARRAY:
+                return Type.byteArrayType(sizeInBytes);
+            default:
+                throw new RuntimeException("unreachable");
+        }
+    }
+
+    public static Type fromString(String s) {
+        String type = s;
+        int openIndex = s.indexOf("(");
+        if (openIndex > 0) type = s.substring(0, openIndex);
+        type = type.trim().toLowerCase();
+        switch (type) {
+            case "int":
+                ;
+            case "integer":
+                return intType();
+            case "char":
+            case "varchar":
+            case "string":
+                int closeIndex = s.indexOf(")");
+                if (closeIndex < 0 || openIndex < 0) {
+                    throw new IllegalArgumentException("Malformed type string: " + s);
+                }
+                String size = s.substring(openIndex + 1, closeIndex).trim();
+                return Type.stringType(Integer.parseInt(size));
+            case "float":
+                return Type.floatType();
+            case "long":
+                return Type.longType();
+            case "bool":
+            case "boolean":
+                return Type.boolType();
+            default:
+                throw new RuntimeException("Unknown type: " + type);
+        }
+    }
+
     public TypeId getTypeId() {
         return typeId;
     }
@@ -84,58 +140,6 @@ public class Type {
         buf.putInt(typeId.ordinal());
         buf.putInt(sizeInBytes);
         return buf.array();
-    }
-
-    public static Type fromBytes(Buffer buf) {
-        int ordinal = buf.getInt();
-        int sizeInBytes = buf.getInt();
-        switch (TypeId.fromInt(ordinal)) {
-        case BOOL:
-            assert(sizeInBytes == 1);
-            return Type.boolType();
-        case INT:
-            assert(sizeInBytes == Integer.BYTES);
-            return Type.intType();
-        case FLOAT:
-            assert(sizeInBytes == Float.BYTES);
-            return Type.floatType();
-        case STRING:
-            return Type.stringType(sizeInBytes);
-        case LONG:
-            assert(sizeInBytes == Long.BYTES);
-            return Type.longType();
-        case BYTE_ARRAY:
-            return Type.byteArrayType(sizeInBytes);
-        default:
-            throw new RuntimeException("unreachable");
-        }
-    }
-
-    public static Type fromString(String s) {
-        String type = s;
-        int openIndex = s.indexOf("(");
-        if (openIndex > 0) type = s.substring(0, openIndex);
-        type = type.trim().toLowerCase();
-        switch(type) {
-            case "int": ;
-            case "integer":
-                return intType();
-            case "char":
-            case "varchar":
-            case "string":
-                int closeIndex = s.indexOf(")");
-                if (closeIndex < 0 || openIndex < 0) {
-                    throw new IllegalArgumentException("Malformed type string: " + s);
-                }
-                String size = s.substring(openIndex + 1, closeIndex).trim();
-                return Type.stringType(Integer.parseInt(size));
-            case "float": return Type.floatType();
-            case "long": return Type.longType();
-            case "bool":
-            case "boolean": return Type.boolType();
-            default:
-                throw new RuntimeException("Unknown type: " + type);
-        }
     }
 
     @Override

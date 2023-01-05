@@ -20,7 +20,7 @@ public class SNLJOperator extends JoinOperator {
                         String rightColumnName,
                         TransactionContext transaction) {
         super(leftSource, materialize(rightSource, transaction),
-              leftColumnName, rightColumnName, transaction, JoinType.SNLJ);
+                leftColumnName, rightColumnName, transaction, JoinType.SNLJ);
         this.stats = this.estimateStats();
     }
 
@@ -69,14 +69,14 @@ public class SNLJOperator extends JoinOperator {
                 // The left source was empty, nothing to fetch
                 return null;
             }
-            while(true) {
+            while (true) {
                 if (this.rightSourceIterator.hasNext()) {
                     // there's a next right record, join it if there's a match
                     Record rightRecord = rightSourceIterator.next();
                     if (compare(leftRecord, rightRecord) == 0) {
                         return leftRecord.concat(rightRecord);
                     }
-                } else if (leftSourceIterator.hasNext()){
+                } else if (leftSourceIterator.hasNext()) {
                     // there's no more right records but there's still left
                     // records. Advance left and reset right
                     this.leftRecord = leftSourceIterator.next();

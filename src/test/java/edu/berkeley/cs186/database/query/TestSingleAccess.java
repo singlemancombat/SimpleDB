@@ -4,7 +4,6 @@ import edu.berkeley.cs186.database.Database;
 import edu.berkeley.cs186.database.TestUtils;
 import edu.berkeley.cs186.database.TimeoutScaling;
 import edu.berkeley.cs186.database.Transaction;
-import edu.berkeley.cs186.database.categories.HiddenTests;
 import edu.berkeley.cs186.database.categories.Proj3Part2Tests;
 import edu.berkeley.cs186.database.categories.Proj3Tests;
 import edu.berkeley.cs186.database.categories.PublicTests;
@@ -22,22 +21,19 @@ import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
 
 import java.io.File;
-import java.util.Collections;
 
 import static org.junit.Assert.assertTrue;
 
 @Category({Proj3Tests.class, Proj3Part2Tests.class})
 public class TestSingleAccess {
-    private Database db;
-
     //Before every test you create a temp folder, after every test you close it
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
-
     // 2 second max per method tested.
     @Rule
     public TestRule globalTimeout = new DisableOnDebug(Timeout.millis((long) (
-                2000 * TimeoutScaling.factor)));
+            2000 * TimeoutScaling.factor)));
+    private Database db;
 
     @Before
     public void beforeEach() throws Exception {
@@ -46,7 +42,7 @@ public class TestSingleAccess {
         this.db = new Database(filename, 32);
         this.db.setWorkMem(5); // B=5
 
-        try(Transaction t = this.db.beginTransaction()) {
+        try (Transaction t = this.db.beginTransaction()) {
             t.dropAllTables();
             Schema schema = TestUtils.createSchemaWithAllTypes();
 
@@ -68,7 +64,7 @@ public class TestSingleAccess {
     @After
     public void afterEach() {
         this.db.waitAllTransactions();
-        try(Transaction t = this.db.beginTransaction()) {
+        try (Transaction t = this.db.beginTransaction()) {
             t.dropAllTables();
         }
         this.db.close();
@@ -77,7 +73,7 @@ public class TestSingleAccess {
     @Test
     @Category(PublicTests.class)
     public void testSequentialScanSelection() {
-        try(Transaction transaction = this.db.beginTransaction()) {
+        try (Transaction transaction = this.db.beginTransaction()) {
             for (int i = 0; i < 2000; ++i) {
                 Record r = new Record(false, i, "!", 0.0f);
                 transaction.insert("table", r);
@@ -95,7 +91,7 @@ public class TestSingleAccess {
     @Test
     @Category(PublicTests.class)
     public void testSimpleIndexScanSelection() {
-        try(Transaction transaction = this.db.beginTransaction()) {
+        try (Transaction transaction = this.db.beginTransaction()) {
             for (int i = 0; i < 2000; ++i) {
                 Record r = new Record(false, i, "!", 0.0f);
                 transaction.insert("indexed_table", r);
@@ -114,7 +110,7 @@ public class TestSingleAccess {
     @Test
     @Category(PublicTests.class)
     public void testPushDownSelects() {
-        try(Transaction transaction = this.db.beginTransaction()) {
+        try (Transaction transaction = this.db.beginTransaction()) {
             for (int i = 0; i < 2000; ++i) {
                 Record r = new Record(false, i, "!", 0.0f);
                 transaction.insert("table", r);
@@ -136,7 +132,7 @@ public class TestSingleAccess {
     @Test
     @Category(PublicTests.class)
     public void testPushDownMultipleSelects() {
-        try(Transaction transaction = this.db.beginTransaction()) {
+        try (Transaction transaction = this.db.beginTransaction()) {
             for (int i = 0; i < 2000; ++i) {
                 Record r = new Record(false, i, "!", 0.0f);
                 transaction.insert("table", r);
@@ -160,7 +156,7 @@ public class TestSingleAccess {
     @Test
     @Category(PublicTests.class)
     public void testNoValidIndices() {
-        try(Transaction transaction = this.db.beginTransaction()) {
+        try (Transaction transaction = this.db.beginTransaction()) {
             for (int i = 0; i < 2000; ++i) {
                 Record r = new Record(false, i, "!", (float) i);
                 transaction.insert("multi_indexed_table", r);
@@ -179,7 +175,7 @@ public class TestSingleAccess {
     @Test
     @Category(PublicTests.class)
     public void testIndexSelectionAndPushDown() {
-        try(Transaction transaction = this.db.beginTransaction()) {
+        try (Transaction transaction = this.db.beginTransaction()) {
             for (int i = 0; i < 2000; ++i) {
                 Record r = new Record(false, i, "!", (float) i);
                 transaction.insert("multi_indexed_table", r);

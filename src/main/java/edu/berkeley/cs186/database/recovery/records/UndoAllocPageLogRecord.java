@@ -28,6 +28,14 @@ public class UndoAllocPageLogRecord extends LogRecord {
         this.undoNextLSN = undoNextLSN;
     }
 
+    public static Optional<LogRecord> fromBytes(Buffer buf) {
+        long transNum = buf.getLong();
+        long pageNum = buf.getLong();
+        long prevLSN = buf.getLong();
+        long undoNextLSN = buf.getLong();
+        return Optional.of(new UndoAllocPageLogRecord(transNum, pageNum, prevLSN, undoNextLSN));
+    }
+
     @Override
     public Optional<Long> getTransNum() {
         return Optional.of(transNum);
@@ -72,32 +80,30 @@ public class UndoAllocPageLogRecord extends LogRecord {
     public byte[] toBytes() {
         byte[] b = new byte[1 + Long.BYTES + Long.BYTES + Long.BYTES + Long.BYTES];
         ByteBuffer.wrap(b)
-        .put((byte) getType().getValue())
-        .putLong(transNum)
-        .putLong(pageNum)
-        .putLong(prevLSN)
-        .putLong(undoNextLSN);
+                .put((byte) getType().getValue())
+                .putLong(transNum)
+                .putLong(pageNum)
+                .putLong(prevLSN)
+                .putLong(undoNextLSN);
         return b;
-    }
-
-    public static Optional<LogRecord> fromBytes(Buffer buf) {
-        long transNum = buf.getLong();
-        long pageNum = buf.getLong();
-        long prevLSN = buf.getLong();
-        long undoNextLSN = buf.getLong();
-        return Optional.of(new UndoAllocPageLogRecord(transNum, pageNum, prevLSN, undoNextLSN));
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         UndoAllocPageLogRecord that = (UndoAllocPageLogRecord) o;
         return transNum == that.transNum &&
-               pageNum == that.pageNum &&
-               prevLSN == that.prevLSN &&
-               undoNextLSN == that.undoNextLSN;
+                pageNum == that.pageNum &&
+                prevLSN == that.prevLSN &&
+                undoNextLSN == that.undoNextLSN;
     }
 
     @Override
@@ -108,11 +114,11 @@ public class UndoAllocPageLogRecord extends LogRecord {
     @Override
     public String toString() {
         return "UndoAllocPageLogRecord{" +
-               "transNum=" + transNum +
-               ", pageNum=" + pageNum +
-               ", prevLSN=" + prevLSN +
-               ", undoNextLSN=" + undoNextLSN +
-               ", LSN=" + LSN +
-               '}';
+                "transNum=" + transNum +
+                ", pageNum=" + pageNum +
+                ", prevLSN=" + prevLSN +
+                ", undoNextLSN=" + undoNextLSN +
+                ", LSN=" + LSN +
+                '}';
     }
 }

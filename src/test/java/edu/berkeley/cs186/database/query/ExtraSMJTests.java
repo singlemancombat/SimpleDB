@@ -23,19 +23,23 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+
 /**
  * These are extra tests that *won't be graded*, but should help pinpoint bugs in
  * the tests in TestSortMergeJoin with excessively detailed output when something
  * messes up.
  */
 public class ExtraSMJTests {
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+    // 4 second max per method tested.
+    @Rule
+    public TestRule globalTimeout = new DisableOnDebug(Timeout.millis((long) (
+            4000 * TimeoutScaling.factor)));
     private Database d;
     private TestSourceOperator leftSourceOperator;
     private TestSourceOperator rightSourceOperator;
     private Map<Long, Page> pinnedPages = new HashMap<>();
-
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {
@@ -51,11 +55,6 @@ public class ExtraSMJTests {
         d.close();
     }
 
-    // 4 second max per method tested.
-    @Rule
-    public TestRule globalTimeout = new DisableOnDebug(Timeout.millis((long) (
-            4000 * TimeoutScaling.factor)));
-
     private void setSourceOperators(List<Record> leftValues, List<Record> rightValues) {
         this.leftSourceOperator = new TestSourceOperator(leftValues, getTestSchema());
         this.rightSourceOperator = new TestSourceOperator(rightValues, getTestSchema());
@@ -65,8 +64,8 @@ public class ExtraSMJTests {
 
     public Schema getTestSchema() {
         return new Schema().add("tableName", Type.stringType(5))
-                           .add("recordNum", Type.intType())
-                           .add("joinValue", Type.intType());
+                .add("recordNum", Type.intType())
+                .add("joinValue", Type.intType());
     }
 
     public Pair<SMJVisualizer, List<Record>> setupValues(int[] leftVals, int[] rightVals) {
@@ -130,9 +129,9 @@ public class ExtraSMJTests {
         //            Right
         // (x's represent where we expect to see matches)
 
-        try(Transaction transaction = d.beginTransaction()) {
-            int[] leftValues = {1,2,3,4};
-            int[] rightValues = {1,2,3,4};
+        try (Transaction transaction = d.beginTransaction()) {
+            int[] leftValues = {1, 2, 3, 4};
+            int[] rightValues = {1, 2, 3, 4};
             Pair<SMJVisualizer, List<Record>> p = setupValues(leftValues, rightValues);
             SMJVisualizer viz = p.getFirst();
             List<Record> expectedRecords = p.getSecond();
@@ -148,7 +147,7 @@ public class ExtraSMJTests {
                 problems.append("You're outputting more than the expected number of records.\n");
                 problems.append("Here are up to ten of the extra records:\n");
                 int i = 0;
-                while(i < 10 && outputIterator.hasNext()) {
+                while (i < 10 && outputIterator.hasNext()) {
                     problems.append(outputIterator.next().toString() + "\n");
                     i++;
                 }
@@ -162,8 +161,8 @@ public class ExtraSMJTests {
 
     @Test
     public void test4x4SkewA() {
-    // Constructs two tables. The schema of each record is
-    // (STRING, INT INT). Here's what the left table looks like:
+        // Constructs two tables. The schema of each record is
+        // (STRING, INT INT). Here's what the left table looks like:
         //
         // tableName | recordNum | joinValue
         // ----------+-----------+----------
@@ -193,9 +192,9 @@ public class ExtraSMJTests {
         //            Right
         // (x's represent where we expect to see matches)
 
-        try(Transaction transaction = d.beginTransaction()) {
-            int[] leftValues = {1,2,3,4};
-            int[] rightValues = {3,4,5,6};
+        try (Transaction transaction = d.beginTransaction()) {
+            int[] leftValues = {1, 2, 3, 4};
+            int[] rightValues = {3, 4, 5, 6};
             Pair<SMJVisualizer, List<Record>> p = setupValues(leftValues, rightValues);
             SMJVisualizer viz = p.getFirst();
             List<Record> expectedRecords = p.getSecond();
@@ -211,7 +210,7 @@ public class ExtraSMJTests {
                 problems.append("You're outputting more than the expected number of records.\n");
                 problems.append("Here are up to ten of the extra records:\n");
                 int i = 0;
-                while(i < 10 && outputIterator.hasNext()) {
+                while (i < 10 && outputIterator.hasNext()) {
                     problems.append(outputIterator.next().toString() + "\n");
                     i++;
                 }
@@ -256,9 +255,9 @@ public class ExtraSMJTests {
         //            Right
         // (x's represent where we expect to see matches)
 
-        try(Transaction transaction = d.beginTransaction()) {
-            int[] leftValues = {3,4,5,6};
-            int[] rightValues = {1,2,3,4};
+        try (Transaction transaction = d.beginTransaction()) {
+            int[] leftValues = {3, 4, 5, 6};
+            int[] rightValues = {1, 2, 3, 4};
             Pair<SMJVisualizer, List<Record>> p = setupValues(leftValues, rightValues);
             SMJVisualizer viz = p.getFirst();
             List<Record> expectedRecords = p.getSecond();
@@ -274,7 +273,7 @@ public class ExtraSMJTests {
                 problems.append("You're outputting more than the expected number of records.\n");
                 problems.append("Here are up to ten of the extra records:\n");
                 int i = 0;
-                while(i < 10 && outputIterator.hasNext()) {
+                while (i < 10 && outputIterator.hasNext()) {
                     problems.append(outputIterator.next().toString() + "\n");
                     i++;
                 }
@@ -320,9 +319,9 @@ public class ExtraSMJTests {
         // (x's represent where we expect to see matches)
         // (There are no matches)
 
-        try(Transaction transaction = d.beginTransaction()) {
-            int[] leftValues = {1,2,3,4};
-            int[] rightValues = {5,6,7,8};
+        try (Transaction transaction = d.beginTransaction()) {
+            int[] leftValues = {1, 2, 3, 4};
+            int[] rightValues = {5, 6, 7, 8};
             Pair<SMJVisualizer, List<Record>> p = setupValues(leftValues, rightValues);
             SMJVisualizer viz = p.getFirst();
             List<Record> expectedRecords = p.getSecond();
@@ -338,7 +337,7 @@ public class ExtraSMJTests {
                 problems.append("You're outputting more than the expected number of records.\n");
                 problems.append("Here are up to ten of the extra records:\n");
                 int i = 0;
-                while(i < 10 && outputIterator.hasNext()) {
+                while (i < 10 && outputIterator.hasNext()) {
                     problems.append(outputIterator.next().toString() + "\n");
                     i++;
                 }
@@ -384,9 +383,9 @@ public class ExtraSMJTests {
         // (x's represent where we expect to see matches)
         // (There are no matches)
 
-        try(Transaction transaction = d.beginTransaction()) {
-            int[] leftValues = {1,1,1,1};
-            int[] rightValues = {1,1,1,1};
+        try (Transaction transaction = d.beginTransaction()) {
+            int[] leftValues = {1, 1, 1, 1};
+            int[] rightValues = {1, 1, 1, 1};
             Pair<SMJVisualizer, List<Record>> p = setupValues(leftValues, rightValues);
             SMJVisualizer viz = p.getFirst();
             List<Record> expectedRecords = p.getSecond();
@@ -402,7 +401,7 @@ public class ExtraSMJTests {
                 problems.append("You're outputting more than the expected number of records.\n");
                 problems.append("Here are up to ten of the extra records:\n");
                 int i = 0;
-                while(i < 10 && outputIterator.hasNext()) {
+                while (i < 10 && outputIterator.hasNext()) {
                     problems.append(outputIterator.next().toString() + "\n");
                     i++;
                 }
@@ -448,9 +447,9 @@ public class ExtraSMJTests {
         // (x's represent where we expect to see matches)
         // (There are no matches)
 
-        try(Transaction transaction = d.beginTransaction()) {
-            int[] leftValues = {1,2,3,4};
-            int[] rightValues = {2,4,6,8};
+        try (Transaction transaction = d.beginTransaction()) {
+            int[] leftValues = {1, 2, 3, 4};
+            int[] rightValues = {2, 4, 6, 8};
             Pair<SMJVisualizer, List<Record>> p = setupValues(leftValues, rightValues);
             SMJVisualizer viz = p.getFirst();
             List<Record> expectedRecords = p.getSecond();
@@ -466,7 +465,7 @@ public class ExtraSMJTests {
                 problems.append("You're outputting more than the expected number of records.\n");
                 problems.append("Here are up to ten of the extra records:\n");
                 int i = 0;
-                while(i < 10 && outputIterator.hasNext()) {
+                while (i < 10 && outputIterator.hasNext()) {
                     problems.append(outputIterator.next().toString() + "\n");
                     i++;
                 }
@@ -522,9 +521,9 @@ public class ExtraSMJTests {
         //                 Right
         // (x's represent where we expect to see matches)
 
-        try(Transaction transaction = d.beginTransaction()) {
-            int[] leftValues = {1,2,3,4,5,6,7,8};
-            int[] rightValues = {1,2,3,4,5,6,7,8};
+        try (Transaction transaction = d.beginTransaction()) {
+            int[] leftValues = {1, 2, 3, 4, 5, 6, 7, 8};
+            int[] rightValues = {1, 2, 3, 4, 5, 6, 7, 8};
             Pair<SMJVisualizer, List<Record>> p = setupValues(leftValues, rightValues);
             SMJVisualizer viz = p.getFirst();
             List<Record> expectedRecords = p.getSecond();
@@ -540,7 +539,7 @@ public class ExtraSMJTests {
                 problems.append("You're outputting more than the expected number of records.\n");
                 problems.append("Here are up to ten of the extra records:\n");
                 int i = 0;
-                while(i < 10 && outputIterator.hasNext()) {
+                while (i < 10 && outputIterator.hasNext()) {
                     problems.append(outputIterator.next().toString() + "\n");
                     i++;
                 }
@@ -596,9 +595,9 @@ public class ExtraSMJTests {
         //                 Right
         // (x's represent where we expect to see matches)
 
-        try(Transaction transaction = d.beginTransaction()) {
-            int[] leftValues = {1,1,2,2,3,3,4,4};
-            int[] rightValues = {1,1,2,2,3,3,4,4};
+        try (Transaction transaction = d.beginTransaction()) {
+            int[] leftValues = {1, 1, 2, 2, 3, 3, 4, 4};
+            int[] rightValues = {1, 1, 2, 2, 3, 3, 4, 4};
             Pair<SMJVisualizer, List<Record>> p = setupValues(leftValues, rightValues);
             SMJVisualizer viz = p.getFirst();
             List<Record> expectedRecords = p.getSecond();
@@ -614,7 +613,7 @@ public class ExtraSMJTests {
                 problems.append("You're outputting more than the expected number of records.\n");
                 problems.append("Here are up to ten of the extra records:\n");
                 int i = 0;
-                while(i < 10 && outputIterator.hasNext()) {
+                while (i < 10 && outputIterator.hasNext()) {
                     problems.append(outputIterator.next().toString() + "\n");
                     i++;
                 }
@@ -670,9 +669,9 @@ public class ExtraSMJTests {
         //                 Right
         // (x's represent where we expect to see matches)
 
-        try(Transaction transaction = d.beginTransaction()) {
-            int[] leftValues = {1,1,1,2,3,3,3,4};
-            int[] rightValues = {1,1,1,2,3,3,3,4};
+        try (Transaction transaction = d.beginTransaction()) {
+            int[] leftValues = {1, 1, 1, 2, 3, 3, 3, 4};
+            int[] rightValues = {1, 1, 1, 2, 3, 3, 3, 4};
             Pair<SMJVisualizer, List<Record>> p = setupValues(leftValues, rightValues);
             SMJVisualizer viz = p.getFirst();
             List<Record> expectedRecords = p.getSecond();
@@ -688,7 +687,7 @@ public class ExtraSMJTests {
                 problems.append("You're outputting more than the expected number of records.\n");
                 problems.append("Here are up to ten of the extra records:\n");
                 int i = 0;
-                while(i < 10 && outputIterator.hasNext()) {
+                while (i < 10 && outputIterator.hasNext()) {
                     problems.append(outputIterator.next().toString() + "\n");
                     i++;
                 }
@@ -744,9 +743,9 @@ public class ExtraSMJTests {
         //                 Right
         // (x's represent where we expect to see matches)
 
-        try(Transaction transaction = d.beginTransaction()) {
-            int[] leftValues = {1,1,2,2,3,3,4,4};
-            int[] rightValues = {1,2,2,2,3,3,3,4};
+        try (Transaction transaction = d.beginTransaction()) {
+            int[] leftValues = {1, 1, 2, 2, 3, 3, 4, 4};
+            int[] rightValues = {1, 2, 2, 2, 3, 3, 3, 4};
             Pair<SMJVisualizer, List<Record>> p = setupValues(leftValues, rightValues);
             SMJVisualizer viz = p.getFirst();
             List<Record> expectedRecords = p.getSecond();
@@ -762,7 +761,7 @@ public class ExtraSMJTests {
                 problems.append("You're outputting more than the expected number of records.\n");
                 problems.append("Here are up to ten of the extra records:\n");
                 int i = 0;
-                while(i < 10 && outputIterator.hasNext()) {
+                while (i < 10 && outputIterator.hasNext()) {
                     problems.append(outputIterator.next().toString() + "\n");
                     i++;
                 }
@@ -818,9 +817,9 @@ public class ExtraSMJTests {
         //                 Right
         // (x's represent where we expect to see matches)
 
-        try(Transaction transaction = d.beginTransaction()) {
-            int[] leftValues = {1,1,2,2,4,4,5,5};
-            int[] rightValues = {1,1,3,3,4,4,6,6};
+        try (Transaction transaction = d.beginTransaction()) {
+            int[] leftValues = {1, 1, 2, 2, 4, 4, 5, 5};
+            int[] rightValues = {1, 1, 3, 3, 4, 4, 6, 6};
             Pair<SMJVisualizer, List<Record>> p = setupValues(leftValues, rightValues);
             SMJVisualizer viz = p.getFirst();
             List<Record> expectedRecords = p.getSecond();
@@ -836,7 +835,7 @@ public class ExtraSMJTests {
                 problems.append("You're outputting more than the expected number of records.\n");
                 problems.append("Here are up to ten of the extra records:\n");
                 int i = 0;
-                while(i < 10 && outputIterator.hasNext()) {
+                while (i < 10 && outputIterator.hasNext()) {
                     problems.append(outputIterator.next().toString() + "\n");
                     i++;
                 }
@@ -885,7 +884,7 @@ public class ExtraSMJTests {
 
             this.expected = new boolean[numLeft][numRight];
             this.actual = new boolean[numLeft][numRight];
-            for (Record r: expectedOutput) {
+            for (Record r : expectedOutput) {
                 int leftRecord = r.getValue(1).getInt();
                 int rightRecord = r.getValue(4).getInt();
                 this.expected[getIndex(leftRecord)][getIndex(rightRecord)] = true;
@@ -952,16 +951,16 @@ public class ExtraSMJTests {
                     boolean e = this.expected[l][r];
                     problem |= a != e;
                     if (e) {
-                        if(a) this.fullRun[l][r] = "x";
-                        else  this.fullRun[l][r] = "?";
+                        if (a) this.fullRun[l][r] = "x";
+                        else this.fullRun[l][r] = "?";
                     } else {
-                        if(a) this.fullRun[l][r] = "+";
+                        if (a) this.fullRun[l][r] = "+";
                         else this.fullRun[l][r] = " ";
                     }
                 }
             }
 
-            for (Record r: this.repeats) {
+            for (Record r : this.repeats) {
                 int leftIndex = getIndex(r.getValue(1).getInt());
                 int rightIndex = getIndex(r.getValue(4).getInt());
                 this.fullRun[leftIndex][rightIndex] = "r";
@@ -970,7 +969,7 @@ public class ExtraSMJTests {
         }
 
         public void add(Record expectedRecord, Record actualRecord, int num) {
-            assertEquals("Your output records should have 6 values. Did you join the left and right records properly?",6, actualRecord.size());
+            assertEquals("Your output records should have 6 values. Did you join the left and right records properly?", 6, actualRecord.size());
             int expectedLeftRecord = expectedRecord.getValue(1).getInt();
             int expectedRightRecord = expectedRecord.getValue(4).getInt();
             int actualLeftRecord = actualRecord.getValue(1).getInt();
@@ -983,7 +982,7 @@ public class ExtraSMJTests {
 
             if (!expectedRecord.equals(actualRecord)) {
                 if (!this.isMismatched()) {
-                    this.mismatchedNum = num+1;
+                    this.mismatchedNum = num + 1;
                     this.firstMismatch[expectedLeftIndex][expectedRightIndex] = "E";
                     this.firstMismatch[actualLeftIndex][actualRightIndex] = "A";
                 }
@@ -1000,7 +999,7 @@ public class ExtraSMJTests {
         }
 
         private int getIndex(int recordNum) {
-            return recordNum-1;
+            return recordNum - 1;
         }
 
         public String getProblems() {
@@ -1016,8 +1015,9 @@ public class ExtraSMJTests {
                 b.append(" - A was the record that you actually yielded\n\n");
             }
 
-            if(computeFullRun()) {
-                b.append("== MISSING OR EXTRA RECORDS == \n");;
+            if (computeFullRun()) {
+                b.append("== MISSING OR EXTRA RECORDS == \n");
+                ;
                 b.append(visualizeFullRun());
                 b.append("\n");
                 b.append("You either excluded or included records when you shouldn't have. Key:\n");
@@ -1031,7 +1031,7 @@ public class ExtraSMJTests {
             if (this.repeats.size() > 0) {
                 b.append("== REPEATS ==\n");
                 b.append("You yielded the following records multiple times:\n");
-                for (Record repeat: this.repeats) {
+                for (Record repeat : this.repeats) {
                     b.append(repeat.toString() + "\n");
                 }
                 b.append("\n");

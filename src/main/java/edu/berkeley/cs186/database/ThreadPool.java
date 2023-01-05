@@ -7,6 +7,12 @@ class ThreadPool extends ThreadPoolExecutor {
         super(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>());
     }
 
+    @SuppressWarnings("unchecked")
+    private static <T extends Throwable> void rethrow(Throwable t) throws T {
+        // rethrows checked exceptions as unchecked
+        throw (T) t;
+    }
+
     @Override
     protected void afterExecute(Runnable r, Throwable t) {
         super.afterExecute(r, t);
@@ -24,11 +30,5 @@ class ThreadPool extends ThreadPoolExecutor {
         if (t != null) {
             rethrow(t);
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T extends Throwable> void rethrow(Throwable t) throws T {
-        // rethrows checked exceptions as unchecked
-        throw (T) t;
     }
 }

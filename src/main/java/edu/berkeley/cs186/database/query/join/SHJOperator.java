@@ -43,7 +43,9 @@ public class SHJOperator extends JoinOperator {
     }
 
     @Override
-    public boolean materialized() { return true; }
+    public boolean materialized() {
+        return true;
+    }
 
     @Override
     public BacktrackingIterator<Record> backtrackingIterator() {
@@ -52,7 +54,8 @@ public class SHJOperator extends JoinOperator {
             // iterator over it once the algorithm completes
             this.joinedRecords = new Run(getTransaction(), getSchema());
             this.run(getLeftSource(), getRightSource(), 1);
-        };
+        }
+        ;
         return joinedRecords.iterator();
     }
 
@@ -66,7 +69,7 @@ public class SHJOperator extends JoinOperator {
      * value we are joining on and adds that record to the correct partition.
      */
     private void partition(Partition[] partitions, Iterable<Record> leftRecords) {
-        for (Record record: leftRecords) {
+        for (Record record : leftRecords) {
             // Partition left records on the chosen column
             DataBox columnValue = record.getValue(getLeftColumnIndex());
             int hash = HashFunc.hashDataBox(columnValue, 1);
@@ -83,7 +86,7 @@ public class SHJOperator extends JoinOperator {
      * in rightRecords. Joins the matching records and returns them as the
      * joinedRecords list.
      *
-     * @param partition a partition
+     * @param partition    a partition
      * @param rightRecords An iterable of records from the right relation
      */
     private void buildAndProbe(Partition partition, Iterable<Record> rightRecords) {
@@ -98,7 +101,7 @@ public class SHJOperator extends JoinOperator {
         Map<DataBox, List<Record>> hashTable = new HashMap<>();
 
         // Building stage
-        for (Record leftRecord: partition) {
+        for (Record leftRecord : partition) {
             DataBox leftJoinValue = leftRecord.getValue(this.getLeftColumnIndex());
             if (!hashTable.containsKey(leftJoinValue)) {
                 hashTable.put(leftJoinValue, new ArrayList<>());
@@ -107,7 +110,7 @@ public class SHJOperator extends JoinOperator {
         }
 
         // Probing stage
-        for (Record rightRecord: rightRecords) {
+        for (Record rightRecord : rightRecords) {
             DataBox rightJoinValue = rightRecord.getValue(getRightColumnIndex());
             if (!hashTable.containsKey(rightJoinValue)) continue;
             // We have to join the right record with each left record with

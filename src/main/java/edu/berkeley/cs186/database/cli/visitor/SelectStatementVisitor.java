@@ -46,28 +46,28 @@ class SelectStatementVisitor extends StatementVisitor {
     @Override
     public Optional<QueryPlan> getQueryPlan(Transaction transaction) {
         List<Pair<String, String>> currentAliases = new ArrayList<>(contextAliases);
-        for (CommonTableExpressionVisitor visitor: this.withExpressions) {
+        for (CommonTableExpressionVisitor visitor : this.withExpressions) {
             String tempTableName = visitor.createTable(transaction, currentAliases);
             currentAliases.add(new Pair<>(tempTableName, visitor.name));
         }
 
         QueryPlan query = transaction.query(tableNames.get(0), tableAliases.get(0));
-        for (Pair<String, String> tempTableName: currentAliases) {
+        for (Pair<String, String> tempTableName : currentAliases) {
             query.addTempTableAlias(tempTableName.getFirst(), tempTableName.getSecond());
         }
-        for(int i = 1; i < tableNames.size(); i++) {
+        for (int i = 1; i < tableNames.size(); i++) {
             query.join(
-                tableNames.get(i),
-                tableAliases.get(i),
-                joinedTableLeftCols.get(i-1),
-                joinedTableRightCols.get(i-1)
+                    tableNames.get(i),
+                    tableAliases.get(i),
+                    joinedTableLeftCols.get(i - 1),
+                    joinedTableRightCols.get(i - 1)
             );
         }
-        for(int i = 0; i < predicateColumns.size(); i++) {
+        for (int i = 0; i < predicateColumns.size(); i++) {
             query.select(
-                predicateColumns.get(i),
-                predicateOperators.get(i),
-                predicateValues.get(i)
+                    predicateColumns.get(i),
+                    predicateOperators.get(i),
+                    predicateValues.get(i)
             );
         }
         ArrayList<String> expandedColumns = new ArrayList<>();
@@ -80,7 +80,7 @@ class SelectStatementVisitor extends StatementVisitor {
                 expandedFunctions.add(selectFunctions.get(i));
                 expandedAliases.add(selectAliases.get(i));
             } else if (name.equals("*")) {
-                for(String alias: tableAliases) {
+                for (String alias : tableAliases) {
                     Schema s = transaction.getSchema(alias);
                     for (String colName : s.getFieldNames()) {
                         String qualifiedName = (tableAliases.size() > 1 ? alias + "." : "") + colName;
@@ -93,11 +93,11 @@ class SelectStatementVisitor extends StatementVisitor {
                 String[] s = name.split("\\.", 2);
                 s[0] = s[0].trim();
                 boolean found = false;
-                for(String alias: tableAliases) {
+                for (String alias : tableAliases) {
                     if (!alias.toLowerCase().trim().equals(s[0].toLowerCase()))
                         continue;
                     Schema schema = transaction.getSchema(s[0]);
-                    found=true;
+                    found = true;
                     for (String colName : schema.getFieldNames()) {
                         String qualifiedName = s[0] + "." + colName;
                         expandedColumns.add(qualifiedName);
@@ -123,7 +123,7 @@ class SelectStatementVisitor extends StatementVisitor {
             query.sort(orderColumnName);
         }
         query.limit(limit, offset);
-        for (CommonTableExpressionVisitor visitor: this.withExpressions) {
+        for (CommonTableExpressionVisitor visitor : this.withExpressions) {
             visitor.populateTable(transaction);
         }
         return Optional.of(query);
@@ -184,7 +184,7 @@ class SelectStatementVisitor extends StatementVisitor {
     public void visit(ASTAliasedTableName node, Object data) {
         String[] names = (String[]) node.jjtGetValue();
         this.tableNames.add(names[0]);
-        if(names[1] != null) this.tableAliases.add(names[1]);
+        if (names[1] != null) this.tableAliases.add(names[1]);
         else this.tableAliases.add(names[0]);
     }
 

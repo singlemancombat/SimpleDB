@@ -4,17 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTComparisonExpression extends SimpleNode {
-  public ASTComparisonExpression(int id) {
-    super(id);
-  }
+    public ASTComparisonExpression(int id) {
+        super(id);
+    }
 
-  public ASTComparisonExpression(RookieParser p, int id) {
-    super(p, id);
-  }
+    public ASTComparisonExpression(RookieParser p, int id) {
+        super(p, id);
+    }
 
-  /** Accept the visitor. **/
-  public void jjtAccept(RookieParserVisitor visitor, Object data) {
-    visitor.visit(this, data);
-  }
+    /**
+     * Accept the visitor.
+     **/
+    public void jjtAccept(RookieParserVisitor visitor, Object data) {
+        visitor.visit(this, data);
+    }
 }
 /* JavaCC - OriginalChecksum=977c37d12314b6e761987686cb5cd7db (do not edit this line) */

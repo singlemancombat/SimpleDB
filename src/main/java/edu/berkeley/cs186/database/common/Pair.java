@@ -9,7 +9,7 @@ public class Pair<A, B> {
     private final B second;
 
     /**
-     * @param first The first value to store in this pair
+     * @param first  The first value to store in this pair
      * @param second The second value to store in this pair
      */
     public Pair(A first, B second) {
@@ -45,11 +45,11 @@ public class Pair<A, B> {
         if (!(other instanceof Pair<?, ?>)) return false;
         Pair<?, ?> p = (Pair<?, ?>) other;
         boolean firstEquals = getFirst() == null
-                              ? p.getFirst() == null
-                              : getFirst().equals(p.getFirst());
+                ? p.getFirst() == null
+                : getFirst().equals(p.getFirst());
         boolean secondEquals = getSecond() == null
-                               ? p.getSecond() == null
-                               : getSecond().equals(p.getSecond());
+                ? p.getSecond() == null
+                : getSecond().equals(p.getSecond());
         return firstEquals && secondEquals;
     }
 

@@ -12,7 +12,8 @@ public class MemoryDiskSpaceManager implements DiskSpaceManager {
     private int nextPartitionNum = 0;
 
     @Override
-    public void close() {}
+    public void close() {
+    }
 
     @Override
     public int allocPart() {

@@ -34,7 +34,9 @@ abstract class AggregateFunction extends Expression {
 
     public void checkSchema() {
         // Do nothing by default
-    };
+    }
+
+    ;
 
     @Override
     protected String subclassString() {
@@ -49,7 +51,9 @@ abstract class AggregateFunction extends Expression {
     }
 
     public abstract void update(Record record);
+
     public abstract void reset();
+
     public abstract String getName();
 
     /**
@@ -58,7 +62,7 @@ abstract class AggregateFunction extends Expression {
      * If the column type is BOOL or INT the result type will be INT. If the
      * column type is LONG the result type will be LONG. If the column type is
      * FLOAT the result type will be FLOAT.
-    */
+     */
     static class SumAggregateFunction extends AggregateFunction {
         private float floatSum = 0;
         private int intSum = 0;
@@ -105,9 +109,12 @@ abstract class AggregateFunction extends Expression {
         @Override
         public DataBox evaluate(Record record) {
             switch (getType().getTypeId()) {
-                case INT: return new IntDataBox(intSum);
-                case LONG: return new LongDataBox(longSum);
-                case FLOAT: return new FloatDataBox(floatSum);
+                case INT:
+                    return new IntDataBox(intSum);
+                case LONG:
+                    return new LongDataBox(longSum);
+                case FLOAT:
+                    return new FloatDataBox(floatSum);
             }
             throw new IllegalStateException("Unreachable code.");
         }
@@ -134,7 +141,7 @@ abstract class AggregateFunction extends Expression {
         }
 
         @Override
-        public String getName()  {
+        public String getName() {
             return "SUM";
         }
     }
@@ -259,9 +266,12 @@ abstract class AggregateFunction extends Expression {
             DataBox max = maxAgg.evaluate(record);
             DataBox min = minAgg.evaluate(record);
             switch (max.getTypeId()) {
-                case INT: return new IntDataBox(max.getInt() - min.getInt());
-                case LONG: return new LongDataBox(max.getLong() - min.getLong());
-                case FLOAT: return new FloatDataBox(max.getFloat() - min.getFloat());
+                case INT:
+                    return new IntDataBox(max.getInt() - min.getInt());
+                case LONG:
+                    return new LongDataBox(max.getLong() - min.getLong());
+                case FLOAT:
+                    return new FloatDataBox(max.getFloat() - min.getFloat());
             }
             throw new IllegalStateException("Unreachable code.");
         }
@@ -446,8 +456,8 @@ abstract class AggregateFunction extends Expression {
      * type. Always returns FLOAT type result.
      */
     static class AverageAggregateFunction extends AggregateFunction {
-        private SumAggregateFunction sumAgg;
         float count = 0;
+        private SumAggregateFunction sumAgg;
 
         public AverageAggregateFunction(Expression... children) {
             super(children);
@@ -478,9 +488,12 @@ abstract class AggregateFunction extends Expression {
             DataBox sum = this.sumAgg.evaluate(record);
             if (count == 0) return new FloatDataBox(Float.NEGATIVE_INFINITY);
             switch (sum.getTypeId()) {
-                case INT: return new FloatDataBox(sum.getInt() / count);
-                case LONG: return new FloatDataBox(sum.getLong() / count);
-                case FLOAT: return new FloatDataBox(sum.getFloat() / count);
+                case INT:
+                    return new FloatDataBox(sum.getInt() / count);
+                case LONG:
+                    return new FloatDataBox(sum.getLong() / count);
+                case FLOAT:
+                    return new FloatDataBox(sum.getFloat() / count);
             }
             throw new IllegalStateException("Unreachable code.");
         }
@@ -507,7 +520,7 @@ abstract class AggregateFunction extends Expression {
      * seen so far, and returns that variance as a result. Undefined for the STRING
      * data type. Always returns a result of data type FLOAT. If only one value has
      * been seen, the result will be zero.
-     *
+     * <p>
      * Implementation based off of Welford's Online Algorithm for computing
      * variance.
      */
@@ -586,6 +599,7 @@ abstract class AggregateFunction extends Expression {
      */
     static class StdDevAggregateFunction extends AggregateFunction {
         private VarianceAggregateFunction varAgg;
+
         public StdDevAggregateFunction(Expression... children) {
             super(children);
             this.varAgg = new VarianceAggregateFunction(children);

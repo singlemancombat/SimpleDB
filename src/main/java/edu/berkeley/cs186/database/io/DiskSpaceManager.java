@@ -4,6 +4,37 @@ public interface DiskSpaceManager extends AutoCloseable {
     short PAGE_SIZE = 4096; // size of a page in bytes
     long INVALID_PAGE_NUM = -1L; // a page number that is always invalid
 
+    /**
+     * Gets partition number from virtual page number
+     *
+     * @param page virtual page number
+     * @return partition number
+     */
+    static int getPartNum(long page) {
+        return (int) (page / 10000000000L);
+    }
+
+    /**
+     * Gets data page number from virtual page number
+     *
+     * @param page virtual page number
+     * @return data page number
+     */
+    static int getPageNum(long page) {
+        return (int) (page % 10000000000L);
+    }
+
+    /**
+     * Gets the virtual page number given partition/data page number
+     *
+     * @param partNum partition number
+     * @param pageNum data page number
+     * @return virtual page number
+     */
+    static long getVirtualPageNum(int partNum, int pageNum) {
+        return partNum * 10000000000L + pageNum;
+    }
+
     @Override
     void close();
 
@@ -24,13 +55,14 @@ public interface DiskSpaceManager extends AutoCloseable {
 
     /**
      * Releases a partition from use.
-
+     *
      * @param partNum partition number to be released
      */
     void freePart(int partNum);
 
     /**
      * Allocates a new page.
+     *
      * @param partNum partition to allocate new page under
      * @return virtual page number of new page
      */
@@ -38,6 +70,7 @@ public interface DiskSpaceManager extends AutoCloseable {
 
     /**
      * Allocates a new page with a specific page number.
+     *
      * @param pageNum page number of new page
      * @return virtual page number of new page
      */
@@ -45,6 +78,7 @@ public interface DiskSpaceManager extends AutoCloseable {
 
     /**
      * Frees a page. The page cannot be used after this call.
+     *
      * @param page virtual page number of page to be released
      */
     void freePage(long page);
@@ -53,7 +87,7 @@ public interface DiskSpaceManager extends AutoCloseable {
      * Reads a page.
      *
      * @param page number of page to be read
-     * @param buf byte buffer whose contents will be filled with page data
+     * @param buf  byte buffer whose contents will be filled with page data
      */
     void readPage(long page, byte[] buf);
 
@@ -61,7 +95,7 @@ public interface DiskSpaceManager extends AutoCloseable {
      * Writes to a page.
      *
      * @param page number of page to be read
-     * @param buf byte buffer that contains the new page data
+     * @param buf  byte buffer that contains the new page data
      */
     void writePage(long page, byte[] buf);
 
@@ -72,33 +106,5 @@ public interface DiskSpaceManager extends AutoCloseable {
      * @return true if the page is allocated, false otherwise
      */
     boolean pageAllocated(long page);
-
-    /**
-     * Gets partition number from virtual page number
-     * @param page virtual page number
-     * @return partition number
-     */
-    static int getPartNum(long page) {
-        return (int) (page / 10000000000L);
-    }
-
-    /**
-     * Gets data page number from virtual page number
-     * @param page virtual page number
-     * @return data page number
-     */
-    static int getPageNum(long page) {
-        return (int) (page % 10000000000L);
-    }
-
-    /**
-     * Gets the virtual page number given partition/data page number
-     * @param partNum partition number
-     * @param pageNum data page number
-     * @return virtual page number
-     */
-    static long getVirtualPageNum(int partNum, int pageNum) {
-        return partNum * 10000000000L + pageNum;
-    }
 
 }

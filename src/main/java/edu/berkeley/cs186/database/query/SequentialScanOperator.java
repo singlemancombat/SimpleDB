@@ -15,7 +15,7 @@ public class SequentialScanOperator extends QueryOperator {
     /**
      * Creates a new SequentialScanOperator that provides an iterator on all
      * tuples in a table.
-     *
+     * <p>
      * NOTE: Sequential scans don't take a source operator because they must
      * always be at the bottom of the DAG.
      *
@@ -23,7 +23,7 @@ public class SequentialScanOperator extends QueryOperator {
      * @param tableName
      */
     public SequentialScanOperator(TransactionContext transaction,
-                           String tableName) {
+                                  String tableName) {
         this(OperatorType.SEQ_SCAN, transaction, tableName);
     }
 
@@ -53,7 +53,9 @@ public class SequentialScanOperator extends QueryOperator {
     }
 
     @Override
-    public boolean materialized() { return true; }
+    public boolean materialized() {
+        return true;
+    }
 
     @Override
     public BacktrackingIterator<Record> backtrackingIterator() {

@@ -1,4 +1,5 @@
 package edu.berkeley.cs186.database.databox;
+
 import java.nio.ByteBuffer;
 
 public class FloatDataBox extends DataBox {
@@ -14,7 +15,9 @@ public class FloatDataBox extends DataBox {
     }
 
     @Override
-    public TypeId getTypeId() { return TypeId.FLOAT; }
+    public TypeId getTypeId() {
+        return TypeId.FLOAT;
+    }
 
     @Override
     public float getFloat() {
@@ -62,7 +65,7 @@ public class FloatDataBox extends DataBox {
         }
         if (!(d instanceof FloatDataBox)) {
             String err = String.format("Invalid comparison between %s and %s.",
-                                       toString(), d.toString());
+                    toString(), d.toString());
             throw new IllegalArgumentException(err);
         }
         FloatDataBox f = (FloatDataBox) d;

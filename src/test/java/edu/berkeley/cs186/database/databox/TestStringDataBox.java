@@ -51,7 +51,7 @@ public class TestStringDataBox {
 
     @Test
     public void testToAndFromBytes() {
-        for (String s : new String[] {"foo", "bar", "baz"}) {
+        for (String s : new String[]{"foo", "bar", "baz"}) {
             StringDataBox d = new StringDataBox(s, 3);
             byte[] bytes = d.toBytes();
             assertEquals(d, DataBox.fromBytes(ByteBuffer.wrap(bytes), Type.stringType(3)));

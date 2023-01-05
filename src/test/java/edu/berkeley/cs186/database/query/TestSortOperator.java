@@ -1,11 +1,12 @@
 package edu.berkeley.cs186.database.query;
 
-import edu.berkeley.cs186.database.*;
-import edu.berkeley.cs186.database.categories.HiddenTests;
+import edu.berkeley.cs186.database.Database;
+import edu.berkeley.cs186.database.TestUtils;
+import edu.berkeley.cs186.database.TimeoutScaling;
+import edu.berkeley.cs186.database.Transaction;
 import edu.berkeley.cs186.database.categories.Proj3Part1Tests;
 import edu.berkeley.cs186.database.categories.Proj3Tests;
 import edu.berkeley.cs186.database.categories.PublicTests;
-import edu.berkeley.cs186.database.common.Pair;
 import edu.berkeley.cs186.database.concurrency.DummyLockContext;
 import edu.berkeley.cs186.database.databox.Type;
 import edu.berkeley.cs186.database.io.DiskSpaceManager;
@@ -28,38 +29,20 @@ import static org.junit.Assert.*;
 
 @Category({Proj3Tests.class, Proj3Part1Tests.class})
 public class TestSortOperator {
-    private Database d;
-    private Page metadataHeader;
-    private Page indexHeader;
-    private long numIOs;
-
     // 1 extra I/O on first access to a table after evictAll
     public static long FIRST_ACCESS_IOS = 1;
     // 1 I/O to create a header page
     public static long NEW_RUN_IOS = 1;
-
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
-
     // 2 second max per method tested.
     @Rule
     public TestRule globalTimeout = new DisableOnDebug(Timeout.millis((long) (
             5000 * TimeoutScaling.factor)));
-
-    @Ignore
-    public static class SortRecordComparator implements Comparator<Record> {
-        private int columnIndex;
-
-        private SortRecordComparator(int columnIndex) {
-            this.columnIndex = columnIndex;
-        }
-
-        @Override
-        public int compare(Record o1, Record o2) {
-            return o1.getValue(this.columnIndex).compareTo(
-                    o2.getValue(this.columnIndex));
-        }
-    }
+    private Database d;
+    private Page metadataHeader;
+    private Page indexHeader;
+    private long numIOs;
 
     @Before
     public void setup() throws IOException {
@@ -141,7 +124,7 @@ public class TestSortOperator {
                 count++;
             }
             assertFalse("too many records", iterator.hasNext());
-            assertEquals("too few records", 8  * 3, count);
+            assertEquals("too few records", 8 * 3, count);
         }
     }
 
@@ -376,6 +359,21 @@ public class TestSortOperator {
             assertFalse("too many records", iter.hasNext());
             assertEquals("too few records", 400 * 3, i);
             checkIOs(0);
+        }
+    }
+
+    @Ignore
+    public static class SortRecordComparator implements Comparator<Record> {
+        private int columnIndex;
+
+        private SortRecordComparator(int columnIndex) {
+            this.columnIndex = columnIndex;
+        }
+
+        @Override
+        public int compare(Record o1, Record o2) {
+            return o1.getValue(this.columnIndex).compareTo(
+                    o2.getValue(this.columnIndex));
         }
     }
 

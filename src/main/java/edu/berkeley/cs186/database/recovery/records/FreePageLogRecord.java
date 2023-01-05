@@ -26,6 +26,13 @@ public class FreePageLogRecord extends LogRecord {
         this.prevLSN = prevLSN;
     }
 
+    public static Optional<LogRecord> fromBytes(Buffer buf) {
+        long transNum = buf.getLong();
+        long pageNum = buf.getLong();
+        long prevLSN = buf.getLong();
+        return Optional.of(new FreePageLogRecord(transNum, pageNum, prevLSN));
+    }
+
     @Override
     public Optional<Long> getTransNum() {
         return Optional.of(transNum);
@@ -73,29 +80,28 @@ public class FreePageLogRecord extends LogRecord {
     public byte[] toBytes() {
         byte[] b = new byte[1 + Long.BYTES + Long.BYTES + Long.BYTES];
         ByteBuffer.wrap(b)
-        .put((byte) getType().getValue())
-        .putLong(transNum)
-        .putLong(pageNum)
-        .putLong(prevLSN);
+                .put((byte) getType().getValue())
+                .putLong(transNum)
+                .putLong(pageNum)
+                .putLong(prevLSN);
         return b;
-    }
-
-    public static Optional<LogRecord> fromBytes(Buffer buf) {
-        long transNum = buf.getLong();
-        long pageNum = buf.getLong();
-        long prevLSN = buf.getLong();
-        return Optional.of(new FreePageLogRecord(transNum, pageNum, prevLSN));
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         FreePageLogRecord that = (FreePageLogRecord) o;
         return transNum == that.transNum &&
-               pageNum == that.pageNum &&
-               prevLSN == that.prevLSN;
+                pageNum == that.pageNum &&
+                prevLSN == that.prevLSN;
     }
 
     @Override
@@ -106,10 +112,10 @@ public class FreePageLogRecord extends LogRecord {
     @Override
     public String toString() {
         return "FreePageLogRecord{" +
-               "transNum=" + transNum +
-               ", pageNum=" + pageNum +
-               ", prevLSN=" + prevLSN +
-               ", LSN=" + LSN +
-               '}';
+                "transNum=" + transNum +
+                ", pageNum=" + pageNum +
+                ", prevLSN=" + prevLSN +
+                ", LSN=" + LSN +
+                '}';
     }
 }

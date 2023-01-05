@@ -4,7 +4,6 @@ import edu.berkeley.cs186.database.Database;
 import edu.berkeley.cs186.database.TestUtils;
 import edu.berkeley.cs186.database.TimeoutScaling;
 import edu.berkeley.cs186.database.Transaction;
-import edu.berkeley.cs186.database.categories.HiddenTests;
 import edu.berkeley.cs186.database.categories.Proj3Part2Tests;
 import edu.berkeley.cs186.database.categories.Proj3Tests;
 import edu.berkeley.cs186.database.categories.PublicTests;
@@ -25,20 +24,19 @@ import org.junit.rules.Timeout;
 import java.io.File;
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @Category({Proj3Tests.class, Proj3Part2Tests.class})
 public class TestOptimizationJoins {
-    private Database db;
-
     // Before every test you create a temp folder, after every test you close it
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
-
     // 10 second max per method tested.
     @Rule
     public TestRule globalTimeout = new DisableOnDebug(Timeout.millis((long) (
-                10000 * TimeoutScaling.factor)));
+            10000 * TimeoutScaling.factor)));
+    private Database db;
 
     @Before
     public void beforeEach() throws Exception {
@@ -46,7 +44,7 @@ public class TestOptimizationJoins {
         String filename = testDir.getAbsolutePath();
         this.db = new Database(filename, 32);
         this.db.setWorkMem(5); // B=5
-        try(Transaction t = this.db.beginTransaction()) {
+        try (Transaction t = this.db.beginTransaction()) {
             Schema schema = TestUtils.createSchemaWithAllTypes();
             t.dropAllTables();
             t.createTable(schema, "indexed_table");
@@ -62,7 +60,7 @@ public class TestOptimizationJoins {
     @After
     public void afterEach() {
         this.db.waitAllTransactions();
-        try(Transaction t = this.db.beginTransaction()) {
+        try (Transaction t = this.db.beginTransaction()) {
             t.dropAllTables();
         }
         this.db.close();
@@ -135,7 +133,7 @@ public class TestOptimizationJoins {
             // (table3 BNLJ table2), cost=19
             // (table2 BNLJ table3), cost=18
             QueryOperator op23 = pass2Map.get(set23);
-            assertTrue(op23 instanceof  BNLJOperator);
+            assertTrue(op23 instanceof BNLJOperator);
             assertEquals(18, op23.estimateIOCost());
 
             // Runs another pass
@@ -160,7 +158,7 @@ public class TestOptimizationJoins {
     @Test
     @Category(PublicTests.class)
     public void testJoinTypeA() {
-        try(Transaction transaction = this.db.beginTransaction()) {
+        try (Transaction transaction = this.db.beginTransaction()) {
             for (int i = 0; i < 2000; ++i) {
                 Record r = new Record(false, i, "!", 0.0f);
                 transaction.insert("table1", r);
@@ -184,7 +182,7 @@ public class TestOptimizationJoins {
     @Test
     @Category(PublicTests.class)
     public void testJoinTypeB() {
-        try(Transaction transaction = this.db.beginTransaction()) {
+        try (Transaction transaction = this.db.beginTransaction()) {
             for (int i = 0; i < 10; ++i) {
                 Record r = new Record(false, i, "!", 0.0f);
                 transaction.insert("indexed_table", r);
@@ -212,7 +210,7 @@ public class TestOptimizationJoins {
     @Test
     @Category(PublicTests.class)
     public void testJoinTypeC() {
-        try(Transaction transaction = db.beginTransaction()) {
+        try (Transaction transaction = db.beginTransaction()) {
             for (int i = 0; i < 2000; ++i) {
                 Record r = new Record(false, i, "!", 0.0f);
                 transaction.insert("indexed_table", r);
@@ -236,7 +234,7 @@ public class TestOptimizationJoins {
     @Test
     @Category(PublicTests.class)
     public void testJoinOrderA() {
-        try(Transaction transaction = db.beginTransaction()) {
+        try (Transaction transaction = db.beginTransaction()) {
             for (int i = 0; i < 500; ++i) {
                 Record r = new Record(false, i, "!", 0.0f);
                 transaction.insert("table1", r);
@@ -275,7 +273,7 @@ public class TestOptimizationJoins {
     @Test
     @Category(PublicTests.class)
     public void testJoinOrderB() {
-        try(Transaction transaction = db.beginTransaction()) {
+        try (Transaction transaction = db.beginTransaction()) {
             for (int i = 0; i < 10; ++i) {
                 Record r = new Record(false, i, "!", 0.0f);
                 transaction.insert("table1", r);

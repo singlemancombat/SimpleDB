@@ -31,12 +31,6 @@ public class TestDatabaseDeadlockPrecheck {
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
-    @Test
-    @Category(PublicTests.class)
-    public void testDeadlock() {
-        assertTrue(performCheck(tempFolder));
-    }
-
     public static boolean performCheck(TemporaryFolder checkFolder) {
         // If we are unable to request an X lock after an X lock is requested and released, there is no point
         // running any of the later tests - every test will block the main thread.
@@ -76,5 +70,11 @@ public class TestDatabaseDeadlockPrecheck {
         }
 
         return mainRunner.getState() == Thread.State.TERMINATED;
+    }
+
+    @Test
+    @Category(PublicTests.class)
+    public void testDeadlock() {
+        assertTrue(performCheck(tempFolder));
     }
 }

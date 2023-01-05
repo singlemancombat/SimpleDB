@@ -4,7 +4,6 @@ import edu.berkeley.cs186.database.Database;
 import edu.berkeley.cs186.database.TestUtils;
 import edu.berkeley.cs186.database.TimeoutScaling;
 import edu.berkeley.cs186.database.Transaction;
-import edu.berkeley.cs186.database.categories.HiddenTests;
 import edu.berkeley.cs186.database.categories.Proj3Part1Tests;
 import edu.berkeley.cs186.database.categories.Proj3Tests;
 import edu.berkeley.cs186.database.categories.PublicTests;
@@ -31,14 +30,17 @@ import static org.junit.Assert.*;
 
 @Category({Proj3Tests.class, Proj3Part1Tests.class})
 public class TestSortMergeJoin {
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+    // 4 second max per method tested.
+    @Rule
+    public TestRule globalTimeout = new DisableOnDebug(Timeout.millis((long) (
+            4000 * TimeoutScaling.factor)));
     private Database d;
     private long numIOs;
     private QueryOperator leftSourceOperator;
     private QueryOperator rightSourceOperator;
     private Map<Long, Page> pinnedPages = new HashMap<>();
-
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Before
     public void setup() throws IOException {
@@ -53,11 +55,6 @@ public class TestSortMergeJoin {
         for (Page p : pinnedPages.values()) p.unpin();
         d.close();
     }
-
-    // 4 second max per method tested.
-    @Rule
-    public TestRule globalTimeout = new DisableOnDebug(Timeout.millis((long) (
-            4000 * TimeoutScaling.factor)));
 
     private void startCountIOs() {
         d.getBufferManager().evictAll();
@@ -110,7 +107,7 @@ public class TestSortMergeJoin {
     @Category(PublicTests.class)
     public void testSimpleSortMergeJoin() {
         d.setWorkMem(5); // B=5
-        try(Transaction transaction = d.beginTransaction()) {
+        try (Transaction transaction = d.beginTransaction()) {
             setSourceOperators(
                     TestUtils.createSourceWithAllTypes(100),
                     TestUtils.createSourceWithAllTypes(100),
@@ -144,9 +141,9 @@ public class TestSortMergeJoin {
 
     @Test
     @Category(PublicTests.class)
-    public void testSortMergeJoinUnsortedInputs()  {
+    public void testSortMergeJoinUnsortedInputs() {
         d.setWorkMem(3); // B=3
-        try(Transaction transaction = d.beginTransaction()) {
+        try (Transaction transaction = d.beginTransaction()) {
             transaction.createTable(TestUtils.createSchemaWithAllTypes(), "leftTable");
             transaction.createTable(TestUtils.createSchemaWithAllTypes(), "rightTable");
             pinPage(1, 1);

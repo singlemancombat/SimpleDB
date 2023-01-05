@@ -5,8 +5,6 @@ import edu.berkeley.cs186.database.Transaction;
 import edu.berkeley.cs186.database.cli.parser.ASTSQLStatementList;
 import edu.berkeley.cs186.database.cli.parser.ParseException;
 import edu.berkeley.cs186.database.cli.parser.RookieParser;
-import edu.berkeley.cs186.database.cli.visitor.StatementListVisitor;
-import edu.berkeley.cs186.database.cli.visitor.StatementType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -22,11 +20,10 @@ import static org.junit.Assert.assertEquals;
 
 public class TestStatementList {
     private static final String TestDir = "testSelectClause";
-    private Database db;
-    private String filename;
-
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
+    private Database db;
+    private String filename;
 
     @Before
     public void beforeEach() throws Exception {
@@ -43,7 +40,7 @@ public class TestStatementList {
 
     @After
     public void afterEach() {
-        try(Transaction t = this.db.beginTransaction()) {
+        try (Transaction t = this.db.beginTransaction()) {
             t.dropAllTables();
         }
         this.db.close();

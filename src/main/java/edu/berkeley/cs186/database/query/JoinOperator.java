@@ -7,28 +7,16 @@ import edu.berkeley.cs186.database.table.Schema;
 import edu.berkeley.cs186.database.table.stats.TableStats;
 
 public abstract class JoinOperator extends QueryOperator {
-    public enum JoinType {
-        SNLJ,
-        PNLJ,
-        BNLJ,
-        SORTMERGE,
-        SHJ,
-        GHJ
-    }
     protected JoinType joinType;
-
     // the source operators
     private QueryOperator leftSource;
     private QueryOperator rightSource;
-
     // join column indices
     private int leftColumnIndex;
     private int rightColumnIndex;
-
     // join column names
     private String leftColumnName;
     private String rightColumnName;
-
     // current transaction
     private TransactionContext transaction;
 
@@ -36,17 +24,17 @@ public abstract class JoinOperator extends QueryOperator {
      * Create a join operator that pulls tuples from leftSource and rightSource.
      * Returns tuples for which leftColumnName and rightColumnName are equal.
      *
-     * @param leftSource the left source operator
-     * @param rightSource the right source operator
-     * @param leftColumnName the column to join on from leftSource
+     * @param leftSource      the left source operator
+     * @param rightSource     the right source operator
+     * @param leftColumnName  the column to join on from leftSource
      * @param rightColumnName the column to join on from rightSource
      */
     public JoinOperator(QueryOperator leftSource,
-                 QueryOperator rightSource,
-                 String leftColumnName,
-                 String rightColumnName,
-                 TransactionContext transaction,
-                 JoinType joinType) {
+                        QueryOperator rightSource,
+                        String leftColumnName,
+                        String rightColumnName,
+                        TransactionContext transaction,
+                        JoinType joinType) {
         super(OperatorType.JOIN);
         this.joinType = joinType;
         this.leftSource = leftSource;
@@ -60,7 +48,7 @@ public abstract class JoinOperator extends QueryOperator {
     @Override
     public QueryOperator getSource() {
         throw new RuntimeException("There is no single source for join operators. use " +
-                                     "getRightSource and getLeftSource and the corresponding set methods.");
+                "getRightSource and getLeftSource and the corresponding set methods.");
     }
 
     @Override
@@ -163,8 +151,6 @@ public abstract class JoinOperator extends QueryOperator {
         return this.rightColumnIndex;
     }
 
-    // Helpers /////////////////////////////////////////////////////////////////
-
     /**
      * @return 0 if leftRecord and rightRecord match on their join values,
      * a negative value if leftRecord's join value is less than rightRecord's
@@ -175,5 +161,16 @@ public abstract class JoinOperator extends QueryOperator {
         DataBox leftRecordValue = leftRecord.getValue(this.leftColumnIndex);
         DataBox rightRecordValue = rightRecord.getValue(this.rightColumnIndex);
         return leftRecordValue.compareTo(rightRecordValue);
+    }
+
+    // Helpers /////////////////////////////////////////////////////////////////
+
+    public enum JoinType {
+        SNLJ,
+        PNLJ,
+        BNLJ,
+        SORTMERGE,
+        SHJ,
+        GHJ
     }
 }

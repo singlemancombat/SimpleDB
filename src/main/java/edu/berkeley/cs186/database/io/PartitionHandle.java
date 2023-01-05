@@ -47,7 +47,52 @@ class PartitionHandle implements AutoCloseable {
     }
 
     /**
+     * @return offset in OS file for master page
+     */
+    private static long masterPageOffset() {
+        return 0;
+    }
+
+    /**
+     * @param headerIndex which header page
+     * @return offset in OS file for header page
+     */
+    private static long headerPageOffset(int headerIndex) {
+        // Consider the layout if we had 4 data pages per header:
+        // Offset (in pages):  0  1  2  3  4  5  6  7  8  9 10 11
+        // Page Type:         [M][H][D][D][D][D][H][D][D][D][D][H]...
+        // Header Index:          0              1              2
+        // To get the offset in pages of a header page you should add 1 for
+        // the master page, and then take the header index times the number
+        // of data pages per header plus 1 to account for the header page
+        // itself (in the above example this coefficient would be 5)
+        long spacingCoeff = DATA_PAGES_PER_HEADER + 1; // Promote to long
+        return (1 + headerIndex * spacingCoeff) * PAGE_SIZE;
+    }
+
+    /**
+     * @param pageNum data page number
+     * @return offset in OS file for data page
+     */
+    private static long dataPageOffset(int pageNum) {
+        // Consider the layout if we had 4 data pages per header:
+        // Offset (in pages):  0  1  2  3  4  5  6  7  8  9 10
+        // Page Type:         [M][H][D][D][D][D][H][D][D][D][D]
+        // Data Page Index:          0  1  2  3     4  5  6  7
+        // To get the offset in pages of a given data page you should:
+        // - add one for the master page
+        // - add one for the first header page
+        // - add how many other header pages precede the data page
+        //   (found by floor dividing page num by data pages per header)
+        // - add how many data pages precede the given data page
+        //   (this works out conveniently to the page's page number)
+        long otherHeaders = pageNum / DATA_PAGES_PER_HEADER;
+        return (2 + otherHeaders + pageNum) * PAGE_SIZE;
+    }
+
+    /**
      * Opens the OS file and loads master and header pages.
+     *
      * @param fileName name of OS file partition is stored in
      */
     void open(String fileName) {
@@ -105,6 +150,7 @@ class PartitionHandle implements AutoCloseable {
 
     /**
      * Writes a header page to disk.
+     *
      * @param headerIndex which header page
      */
     private void writeHeaderPage(int headerIndex) throws IOException {
@@ -114,6 +160,7 @@ class PartitionHandle implements AutoCloseable {
 
     /**
      * Allocates a new page in the partition.
+     *
      * @return data page number
      */
     int allocPage() throws IOException {
@@ -150,8 +197,9 @@ class PartitionHandle implements AutoCloseable {
 
     /**
      * Allocates a new page in the partition.
+     *
      * @param headerIndex index of header page managing new page
-     * @param pageIndex index within header page of new page
+     * @param pageIndex   index within header page of new page
      * @return data page number
      */
     int allocPage(int headerIndex, int pageIndex) throws IOException {
@@ -163,8 +211,8 @@ class PartitionHandle implements AutoCloseable {
 
         if (Bits.getBit(headerBytes, pageIndex) == Bits.Bit.ONE) {
             throw new IllegalStateException("page at (part=" + partNum + ", header=" + headerIndex + ", index="
-                                            +
-                                            pageIndex + ") already allocated");
+                    +
+                    pageIndex + ") already allocated");
         }
 
         Bits.setBit(headerBytes, pageIndex, Bits.Bit.ONE);
@@ -186,6 +234,7 @@ class PartitionHandle implements AutoCloseable {
 
     /**
      * Frees a page in the partition from use.
+     *
      * @param pageNum data page number to be freed
      */
     void freePage(int pageNum) throws IOException {
@@ -232,8 +281,9 @@ class PartitionHandle implements AutoCloseable {
 
     /**
      * Reads in a data page. Assumes that the partition lock is held.
+     *
      * @param pageNum data page number to read in
-     * @param buf output buffer to be filled with page - assumed to be page size
+     * @param buf     output buffer to be filled with page - assumed to be page size
      */
     void readPage(int pageNum, byte[] buf) throws IOException {
         if (this.isNotAllocatedPage(pageNum)) {
@@ -245,8 +295,9 @@ class PartitionHandle implements AutoCloseable {
 
     /**
      * Writes to a data page. Assumes that the partition lock is held.
+     *
      * @param pageNum data page number to write to
-     * @param buf input buffer with new contents of page - assumed to be page size
+     * @param buf     input buffer with new contents of page - assumed to be page size
      */
     void writePage(int pageNum, byte[] buf) throws IOException {
         if (this.isNotAllocatedPage(pageNum)) {
@@ -262,6 +313,7 @@ class PartitionHandle implements AutoCloseable {
 
     /**
      * Checks if page number is for an unallocated data page
+     *
      * @param pageNum data page number
      * @return true if page is not valid or not allocated
      */
@@ -279,6 +331,7 @@ class PartitionHandle implements AutoCloseable {
 
     /**
      * Frees all data pages from partition for use
+     *
      * @throws IOException
      */
     void freeDataPages() throws IOException {
@@ -292,49 +345,5 @@ class PartitionHandle implements AutoCloseable {
                 }
             }
         }
-    }
-
-    /**
-     * @return offset in OS file for master page
-     */
-    private static long masterPageOffset() {
-        return 0;
-    }
-
-    /**
-     * @param headerIndex which header page
-     * @return offset in OS file for header page
-     */
-    private static long headerPageOffset(int headerIndex) {
-        // Consider the layout if we had 4 data pages per header:
-        // Offset (in pages):  0  1  2  3  4  5  6  7  8  9 10 11
-        // Page Type:         [M][H][D][D][D][D][H][D][D][D][D][H]...
-        // Header Index:          0              1              2
-        // To get the offset in pages of a header page you should add 1 for
-        // the master page, and then take the header index times the number
-        // of data pages per header plus 1 to account for the header page
-        // itself (in the above example this coefficient would be 5)
-        long spacingCoeff = DATA_PAGES_PER_HEADER + 1; // Promote to long
-        return (1 + headerIndex * spacingCoeff) * PAGE_SIZE;
-    }
-
-    /**
-     * @param pageNum data page number
-     * @return offset in OS file for data page
-     */
-    private static long dataPageOffset(int pageNum) {
-        // Consider the layout if we had 4 data pages per header:
-        // Offset (in pages):  0  1  2  3  4  5  6  7  8  9 10
-        // Page Type:         [M][H][D][D][D][D][H][D][D][D][D]
-        // Data Page Index:          0  1  2  3     4  5  6  7
-        // To get the offset in pages of a given data page you should:
-        // - add one for the master page
-        // - add one for the first header page
-        // - add how many other header pages precede the data page
-        //   (found by floor dividing page num by data pages per header)
-        // - add how many data pages precede the given data page
-        //   (this works out conveniently to the page's page number)
-        long otherHeaders = pageNum / DATA_PAGES_PER_HEADER;
-        return (2 + otherHeaders + pageNum) * PAGE_SIZE;
     }
 }

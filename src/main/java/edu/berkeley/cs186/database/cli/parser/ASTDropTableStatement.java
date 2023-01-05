@@ -4,17 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTDropTableStatement extends SimpleNode {
-  public ASTDropTableStatement(int id) {
-    super(id);
-  }
+    public ASTDropTableStatement(int id) {
+        super(id);
+    }
 
-  public ASTDropTableStatement(RookieParser p, int id) {
-    super(p, id);
-  }
+    public ASTDropTableStatement(RookieParser p, int id) {
+        super(p, id);
+    }
 
-  /** Accept the visitor. **/
-  public void jjtAccept(RookieParserVisitor visitor, Object data) {
-    visitor.visit(this, data);
-  }
+    /**
+     * Accept the visitor.
+     **/
+    public void jjtAccept(RookieParserVisitor visitor, Object data) {
+        visitor.visit(this, data);
+    }
 }
 /* JavaCC - OriginalChecksum=3e872fd29318943246e63383112ae0ba (do not edit this line) */

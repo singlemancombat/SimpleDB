@@ -10,10 +10,14 @@ public class BoolDataBox extends DataBox {
     }
 
     @Override
-    public Type type() { return Type.boolType(); }
+    public Type type() {
+        return Type.boolType();
+    }
 
     @Override
-    public TypeId getTypeId() { return TypeId.BOOL; }
+    public TypeId getTypeId() {
+        return TypeId.BOOL;
+    }
 
     @Override
     public boolean getBool() {
@@ -52,7 +56,7 @@ public class BoolDataBox extends DataBox {
     public int compareTo(DataBox d) {
         if (!(d instanceof BoolDataBox)) {
             String err = String.format("Invalid comparison between %s and %s.",
-                                       toString(), d.toString());
+                    toString(), d.toString());
             throw new IllegalArgumentException(err);
         }
         BoolDataBox b = (BoolDataBox) d;

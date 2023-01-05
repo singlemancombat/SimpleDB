@@ -13,19 +13,20 @@ import java.util.Arrays;
 public class HashFunc {
     /**
      * Applies a hash function seeded with pass to a record
+     *
      * @param record the record to be hashed
-     * @param pass which pass of hashing this function belongs to.
+     * @param pass   which pass of hashing this function belongs to.
      * @return an integer hash value. The hash value can be any 32-bit integer.
      * This includes negative values.
      */
     public static int hashRecord(Record record, int pass) {
         int total = 0;
-        for (DataBox d: record.getValues()) {
+        for (DataBox d : record.getValues()) {
             total += d.hashBytes().length;
         }
         byte[] bytes = new byte[total];
         int start = 0;
-        for (DataBox d: record.getValues()) {
+        for (DataBox d : record.getValues()) {
             byte[] curr = d.hashBytes();
             System.arraycopy(bytes, start, curr, 0, curr.length);
             start += curr.length;
@@ -35,7 +36,8 @@ public class HashFunc {
 
     /**
      * Applies a hash function seeded with pass to a data box
-     * @param d the data box to be hashed
+     *
+     * @param d    the data box to be hashed
      * @param pass which pass of hashing this function belongs to.
      * @return an integer hash value. The hash value can be any 32-bit integer.
      * This includes negative values.
@@ -47,7 +49,8 @@ public class HashFunc {
     /**
      * Applies a hash function seeded with `seed` to `k`. based on Postgres's
      * hash_bytes_extended.
-     * @param k the bytes to be hashed
+     *
+     * @param k    the bytes to be hashed
      * @param seed the seed for this hash function
      * @return an integer hash value. The hash value can be any 32-bit integer.
      * This includes negative values.
@@ -61,17 +64,17 @@ public class HashFunc {
         }
         while (k.length > 12) {
             // Handle most of key
-            state.a += k[3]  + ((bytesToInt(k, 2)  << 8)) + ((bytesToInt(k, 1)  << 16)) + ((bytesToInt(k, 0)  << 24));
-            state.b += k[7]  + ((bytesToInt(k, 6)  << 8)) + ((bytesToInt(k, 5)  << 16)) + ((bytesToInt(k, 4)  << 24));
-            state.c += k[11] + ((bytesToInt(k, 10) << 8)) + ((bytesToInt(k, 9)  << 16)) + ((bytesToInt(k, 8)  << 24));
-            state.a += k[0]  + ((bytesToInt(k, 1)  << 8)) + ((bytesToInt(k, 2)  << 16)) + ((bytesToInt(k, 3)  << 24));
-            state.b += k[4]  + ((bytesToInt(k, 5)  << 8)) + ((bytesToInt(k, 6)  << 16)) + ((bytesToInt(k, 7)  << 24));
-            state.c += k[8] +  ((bytesToInt(k, 9)  << 8)) + ((bytesToInt(k, 10) << 16)) + ((bytesToInt(k, 11) << 24));
+            state.a += k[3] + ((bytesToInt(k, 2) << 8)) + ((bytesToInt(k, 1) << 16)) + ((bytesToInt(k, 0) << 24));
+            state.b += k[7] + ((bytesToInt(k, 6) << 8)) + ((bytesToInt(k, 5) << 16)) + ((bytesToInt(k, 4) << 24));
+            state.c += k[11] + ((bytesToInt(k, 10) << 8)) + ((bytesToInt(k, 9) << 16)) + ((bytesToInt(k, 8) << 24));
+            state.a += k[0] + ((bytesToInt(k, 1) << 8)) + ((bytesToInt(k, 2) << 16)) + ((bytesToInt(k, 3) << 24));
+            state.b += k[4] + ((bytesToInt(k, 5) << 8)) + ((bytesToInt(k, 6) << 16)) + ((bytesToInt(k, 7) << 24));
+            state.c += k[8] + ((bytesToInt(k, 9) << 8)) + ((bytesToInt(k, 10) << 16)) + ((bytesToInt(k, 11) << 24));
             state.mix();
             k = Arrays.copyOfRange(k, 12, k.length - 12);
         }
 
-        switch(k.length) {
+        switch (k.length) {
             case 11:
                 state.c += ((int) k[10]) << 8;
                 /* fall through */
@@ -115,7 +118,7 @@ public class HashFunc {
      * Rotates the bits of i left by offset, with wrapping.
      */
     private static int rot(int i, int offset) {
-        return (i<<offset) | (i>>(32 - offset));
+        return (i << offset) | (i >> (32 - offset));
     }
 
     /**
@@ -127,6 +130,7 @@ public class HashFunc {
 
     private static class HashState {
         int a, b, c;
+
         public HashState(int len) {
             a = b = c = 0x9e3779b9 + len + 3923095;
         }
@@ -134,26 +138,45 @@ public class HashFunc {
         /**
          * Mixes the three states. Based on Postgres's hashfunc::mix
          */
-        public void mix()  {
-            a -= c;  a ^= rot(c, 4);  c += b;
-            b -= a;  b ^= rot(a, 6);  a += c;
-            c -= b;  c ^= rot(b, 8);  b += a;
-            a -= c;  a ^= rot(c,16);  c += b;
-            b -= a;  b ^= rot(a,19);  a += c;
-            c -= b;  c ^= rot(b, 4);  b += a;
+        public void mix() {
+            a -= c;
+            a ^= rot(c, 4);
+            c += b;
+            b -= a;
+            b ^= rot(a, 6);
+            a += c;
+            c -= b;
+            c ^= rot(b, 8);
+            b += a;
+            a -= c;
+            a ^= rot(c, 16);
+            c += b;
+            b -= a;
+            b ^= rot(a, 19);
+            a += c;
+            c -= b;
+            c ^= rot(b, 4);
+            b += a;
         }
 
         /**
          * Alternate mix function. Based on Postgres's hashfunc::final
          */
         public void finalMix() {
-            c ^= b; c -= rot(b,14);
-            a ^= c; a -= rot(c,11);
-            b ^= a; b -= rot(a,25);
-            c ^= b; c -= rot(b,16);
-            a ^= c; a -= rot(c, 4);
-            b ^= a; b -= rot(a,14);
-            c ^= b; c -= rot(b,24);
+            c ^= b;
+            c -= rot(b, 14);
+            a ^= c;
+            a -= rot(c, 11);
+            b ^= a;
+            b -= rot(a, 25);
+            c ^= b;
+            c -= rot(b, 16);
+            a ^= c;
+            a -= rot(c, 4);
+            b ^= a;
+            b -= rot(a, 14);
+            c ^= b;
+            c -= rot(b, 24);
         }
     }
 }

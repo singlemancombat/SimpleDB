@@ -8,7 +8,10 @@ import edu.berkeley.cs186.database.table.Record;
 import edu.berkeley.cs186.database.table.Schema;
 import edu.berkeley.cs186.database.table.stats.TableStats;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 
 public class SortOperator extends QueryOperator {
     protected Comparator<Record> comparator;
@@ -28,13 +31,6 @@ public class SortOperator extends QueryOperator {
         this.comparator = new RecordComparator();
     }
 
-    private class RecordComparator implements Comparator<Record> {
-        @Override
-        public int compare(Record r1, Record r2) {
-            return r1.getValue(sortColumnIndex).compareTo(r2.getValue(sortColumnIndex));
-        }
-    }
-
     @Override
     public TableStats estimateStats() {
         return getSource().estimateStats();
@@ -48,7 +44,7 @@ public class SortOperator extends QueryOperator {
     @Override
     public int estimateIOCost() {
         int N = getSource().estimateStats().getNumPages();
-        double pass0Runs = Math.ceil(N / (double)numBuffers);
+        double pass0Runs = Math.ceil(N / (double) numBuffers);
         double numPasses = 1 + Math.ceil(Math.log(pass0Runs) / Math.log(numBuffers - 1));
         return (int) (2 * N * numPasses) + getSource().estimateIOCost();
     }
@@ -64,7 +60,9 @@ public class SortOperator extends QueryOperator {
     }
 
     @Override
-    public boolean materialized() { return true; }
+    public boolean materialized() {
+        return true;
+    }
 
     @Override
     public BacktrackingIterator<Record> backtrackingIterator() {
@@ -95,7 +93,7 @@ public class SortOperator extends QueryOperator {
      * merging the input runs. You should use a Priority Queue (java.util.PriorityQueue)
      * to determine which record should be should be added to the output run
      * next.
-     *
+     * <p>
      * You are NOT allowed to have more than runs.size() records in your
      * priority queue at a given moment. It is recommended that your Priority
      * Queue hold Pair<Record, Integer> objects where a Pair (r, i) is the
@@ -109,18 +107,6 @@ public class SortOperator extends QueryOperator {
         assert (runs.size() <= this.numBuffers - 1);
         // TODO(proj3_part1): implement
         return null;
-    }
-
-    /**
-     * Compares the two (record, integer) pairs based only on the record
-     * component using the default comparator. You may find this useful for
-     * implementing mergeSortedRuns.
-     */
-    private class RecordPairComparator implements Comparator<Pair<Record, Integer>> {
-        @Override
-        public int compare(Pair<Record, Integer> o1, Pair<Record, Integer> o2) {
-            return SortOperator.this.comparator.compare(o1.getFirst(), o2.getFirst());
-        }
     }
 
     /**
@@ -167,6 +153,25 @@ public class SortOperator extends QueryOperator {
         Run run = new Run(this.transaction, getSchema());
         run.addAll(records);
         return run;
+    }
+
+    private class RecordComparator implements Comparator<Record> {
+        @Override
+        public int compare(Record r1, Record r2) {
+            return r1.getValue(sortColumnIndex).compareTo(r2.getValue(sortColumnIndex));
+        }
+    }
+
+    /**
+     * Compares the two (record, integer) pairs based only on the record
+     * component using the default comparator. You may find this useful for
+     * implementing mergeSortedRuns.
+     */
+    private class RecordPairComparator implements Comparator<Pair<Record, Integer>> {
+        @Override
+        public int compare(Pair<Record, Integer> o1, Pair<Record, Integer> o2) {
+            return SortOperator.this.comparator.compare(o1.getFirst(), o2.getFirst());
+        }
     }
 }
 

@@ -25,6 +25,14 @@ public class UndoFreePartLogRecord extends LogRecord {
         this.undoNextLSN = undoNextLSN;
     }
 
+    public static Optional<LogRecord> fromBytes(Buffer buf) {
+        long transNum = buf.getLong();
+        int partNum = buf.getInt();
+        long prevLSN = buf.getLong();
+        long undoNextLSN = buf.getLong();
+        return Optional.of(new UndoFreePartLogRecord(transNum, partNum, prevLSN, undoNextLSN));
+    }
+
     @Override
     public Optional<Long> getTransNum() {
         return Optional.of(transNum);
@@ -67,32 +75,30 @@ public class UndoFreePartLogRecord extends LogRecord {
     public byte[] toBytes() {
         byte[] b = new byte[1 + Long.BYTES + Integer.BYTES + Long.BYTES + Long.BYTES];
         ByteBuffer.wrap(b)
-        .put((byte) getType().getValue())
-        .putLong(transNum)
-        .putInt(partNum)
-        .putLong(prevLSN)
-        .putLong(undoNextLSN);
+                .put((byte) getType().getValue())
+                .putLong(transNum)
+                .putInt(partNum)
+                .putLong(prevLSN)
+                .putLong(undoNextLSN);
         return b;
-    }
-
-    public static Optional<LogRecord> fromBytes(Buffer buf) {
-        long transNum = buf.getLong();
-        int partNum = buf.getInt();
-        long prevLSN = buf.getLong();
-        long undoNextLSN = buf.getLong();
-        return Optional.of(new UndoFreePartLogRecord(transNum, partNum, prevLSN, undoNextLSN));
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-        if (!super.equals(o)) { return false; }
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         UndoFreePartLogRecord that = (UndoFreePartLogRecord) o;
         return transNum == that.transNum &&
-               partNum == that.partNum &&
-               prevLSN == that.prevLSN &&
-               undoNextLSN == that.undoNextLSN;
+                partNum == that.partNum &&
+                prevLSN == that.prevLSN &&
+                undoNextLSN == that.undoNextLSN;
     }
 
     @Override
@@ -103,11 +109,11 @@ public class UndoFreePartLogRecord extends LogRecord {
     @Override
     public String toString() {
         return "UndoFreePartLogRecord{" +
-               "transNum=" + transNum +
-               ", partNum=" + partNum +
-               ", prevLSN=" + prevLSN +
-               ", undoNextLSN=" + undoNextLSN +
-               ", LSN=" + LSN +
-               '}';
+                "transNum=" + transNum +
+                ", partNum=" + partNum +
+                ", prevLSN=" + prevLSN +
+                ", undoNextLSN=" + undoNextLSN +
+                ", LSN=" + LSN +
+                '}';
     }
 }

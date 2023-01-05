@@ -28,6 +28,7 @@ public class TestSourceOperator extends QueryOperator {
 
     /**
      * Constructor for empty source operator
+     *
      * @param schema schema for this source operator
      */
     public TestSourceOperator(Schema schema) {

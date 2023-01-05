@@ -29,6 +29,7 @@ public class ByteArrayDataBox extends DataBox {
     public int compareTo(DataBox other) {
         throw new RuntimeException("Cannot compare byte arrays");
     }
+
     @Override
     public String toString() {
         return "byte_array";

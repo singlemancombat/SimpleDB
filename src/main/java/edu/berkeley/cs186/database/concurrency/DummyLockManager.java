@@ -7,12 +7,13 @@ import java.util.List;
 
 /**
  * Dummy lock manager that does no locking or error checking.
- *
+ * <p>
  * Used for non-locking-related tests to disable locking. This allows earlier
  * and later projects to be completed without needing to complete Project 4.
  */
 public class DummyLockManager extends LockManager {
-    public DummyLockManager() { }
+    public DummyLockManager() {
+    }
 
     @Override
     public LockContext context(String name) {
@@ -27,20 +28,24 @@ public class DummyLockManager extends LockManager {
     @Override
     public void acquireAndRelease(TransactionContext transaction, ResourceName name,
                                   LockType lockType, List<ResourceName> releaseNames)
-    throws DuplicateLockRequestException, NoLockHeldException { }
+            throws DuplicateLockRequestException, NoLockHeldException {
+    }
 
     @Override
     public void acquire(TransactionContext transaction, ResourceName name,
-                        LockType lockType) throws DuplicateLockRequestException { }
+                        LockType lockType) throws DuplicateLockRequestException {
+    }
 
     @Override
     public void release(TransactionContext transaction, ResourceName name)
-    throws NoLockHeldException { }
+            throws NoLockHeldException {
+    }
 
     @Override
     public void promote(TransactionContext transaction, ResourceName name,
                         LockType newLockType)
-    throws DuplicateLockRequestException, NoLockHeldException, InvalidLockException { }
+            throws DuplicateLockRequestException, NoLockHeldException, InvalidLockException {
+    }
 
     @Override
     public LockType getLockType(TransactionContext transaction, ResourceName name) {

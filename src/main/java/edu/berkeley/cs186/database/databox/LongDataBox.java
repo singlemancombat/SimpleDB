@@ -1,4 +1,5 @@
 package edu.berkeley.cs186.database.databox;
+
 import java.nio.ByteBuffer;
 
 public class LongDataBox extends DataBox {
@@ -14,7 +15,9 @@ public class LongDataBox extends DataBox {
     }
 
     @Override
-    public TypeId getTypeId() { return TypeId.LONG; }
+    public TypeId getTypeId() {
+        return TypeId.LONG;
+    }
 
     @Override
     public long getLong() {
@@ -62,7 +65,7 @@ public class LongDataBox extends DataBox {
         }
         if (!(d instanceof LongDataBox)) {
             String err = String.format("Invalid comparison between %s and %s.",
-                                       toString(), d.toString());
+                    toString(), d.toString());
             throw new IllegalArgumentException(err);
         }
         LongDataBox l = (LongDataBox) d;

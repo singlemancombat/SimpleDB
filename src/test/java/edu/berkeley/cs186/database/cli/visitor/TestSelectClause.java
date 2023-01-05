@@ -30,11 +30,10 @@ import static org.junit.Assert.fail;
 @Category({Proj99Tests.class, SystemTests.class})
 public class TestSelectClause {
     private static final String TestDir = "testSelectClause";
-    private Database db;
-    private String filename;
-
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
+    private Database db;
+    private String filename;
 
     @Before
     public void beforeEach() throws Exception {
@@ -51,7 +50,7 @@ public class TestSelectClause {
 
     @After
     public void afterEach() {
-        try(Transaction t = this.db.beginTransaction()) {
+        try (Transaction t = this.db.beginTransaction()) {
             t.dropAllTables();
         }
         this.db.close();

@@ -4,17 +4,19 @@ package edu.berkeley.cs186.database.cli.parser;
 
 public
 class ASTOrderClause extends SimpleNode {
-  public ASTOrderClause(int id) {
-    super(id);
-  }
+    public ASTOrderClause(int id) {
+        super(id);
+    }
 
-  public ASTOrderClause(RookieParser p, int id) {
-    super(p, id);
-  }
+    public ASTOrderClause(RookieParser p, int id) {
+        super(p, id);
+    }
 
-  /** Accept the visitor. **/
-  public void jjtAccept(RookieParserVisitor visitor, Object data) {
-    visitor.visit(this, data);
-  }
+    /**
+     * Accept the visitor.
+     **/
+    public void jjtAccept(RookieParserVisitor visitor, Object data) {
+        visitor.visit(this, data);
+    }
 }
 /* JavaCC - OriginalChecksum=3d31dfbbe27eb52af73bdf4a52972d6f (do not edit this line) */

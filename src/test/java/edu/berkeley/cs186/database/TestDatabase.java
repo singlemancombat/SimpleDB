@@ -27,11 +27,10 @@ import static org.junit.Assert.assertFalse;
 @Category({Proj99Tests.class, SystemTests.class})
 public class TestDatabase {
     private static final String TestDir = "testDatabase";
-    private Database db;
-    private String filename;
-
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
+    private Database db;
+    private String filename;
 
     @Before
     public void beforeEach() throws Exception {
@@ -39,14 +38,14 @@ public class TestDatabase {
         this.filename = testDir.getAbsolutePath();
         this.db = new Database(filename, 32);
         this.db.setWorkMem(4);
-        try(Transaction t = this.db.beginTransaction()) {
+        try (Transaction t = this.db.beginTransaction()) {
             t.dropAllTables();
         }
     }
 
     @After
     public void afterEach() {
-        try(Transaction t = this.db.beginTransaction()) {
+        try (Transaction t = this.db.beginTransaction()) {
             t.dropAllTables();
         }
         this.db.close();
@@ -56,7 +55,7 @@ public class TestDatabase {
     public void testTableCreate() {
         Schema s = TestUtils.createSchemaWithAllTypes();
 
-        try(Transaction t = this.db.beginTransaction()) {
+        try (Transaction t = this.db.beginTransaction()) {
             t.createTable(s, "testTable1");
         }
     }
@@ -68,7 +67,7 @@ public class TestDatabase {
 
         String tableName = "testTable1";
 
-        try(Transaction t1 = db.beginTransaction()) {
+        try (Transaction t1 = db.beginTransaction()) {
             t1.createTable(s, tableName);
             RecordId rid = t1.getTransactionContext().addRecord(tableName, input);
             t1.getTransactionContext().getRecord(tableName, rid);
@@ -82,7 +81,7 @@ public class TestDatabase {
 
         String tableName = "testTable1";
 
-        try(Transaction t1 = db.beginTransaction()) {
+        try (Transaction t1 = db.beginTransaction()) {
             t1.createTable(s, tableName);
             RecordId rid = t1.getTransactionContext().addRecord(tableName, input);
             Record rec = t1.getTransactionContext().getRecord(tableName, rid);
@@ -105,7 +104,7 @@ public class TestDatabase {
         RecordId rid;
         Record rec;
         String tempTableName;
-        try(Transaction t1 = db.beginTransaction()) {
+        try (Transaction t1 = db.beginTransaction()) {
             t1.createTable(s, tableName);
             rid = t1.getTransactionContext().addRecord(tableName, input);
             rec = t1.getTransactionContext().getRecord(tableName, rid);
@@ -117,7 +116,7 @@ public class TestDatabase {
             assertEquals(input, rec);
         }
 
-        try(Transaction t2 = db.beginTransaction()) {
+        try (Transaction t2 = db.beginTransaction()) {
             t2.insert(tempTableName, input);
         }
     }
@@ -131,7 +130,7 @@ public class TestDatabase {
 
         RecordId rid;
         Record rec;
-        try(Transaction t1 = db.beginTransaction()) {
+        try (Transaction t1 = db.beginTransaction()) {
             t1.createTable(s, tableName);
             rid = t1.getTransactionContext().addRecord(tableName, input);
             rec = t1.getTransactionContext().getRecord(tableName, rid);
@@ -142,7 +141,7 @@ public class TestDatabase {
         db.close();
         db = new Database(this.filename, 32);
 
-        try(Transaction t1 = db.beginTransaction()) {
+        try (Transaction t1 = db.beginTransaction()) {
             rec = t1.getTransactionContext().getRecord(tableName, rid);
             assertEquals(input, rec);
         }
@@ -156,7 +155,7 @@ public class TestDatabase {
                     .add("firstName", Type.stringType(10))
                     .add("lastName", Type.stringType(10));
             t1.createTable(s, "table1");
-            t1.insert("table1",1, "Jane", "Doe");
+            t1.insert("table1", 1, "Jane", "Doe");
             t1.insert("table1", 2, "John", "Doe");
             t1.commit();
         }
@@ -174,9 +173,9 @@ public class TestDatabase {
     public void testJoinQuery() {
         try (Transaction t1 = db.beginTransaction()) {
             Schema s = new Schema()
-                .add("id", Type.intType())
-                .add("firstName", Type.stringType(10))
-                .add("lastName", Type.stringType(10));
+                    .add("id", Type.intType())
+                    .add("firstName", Type.stringType(10))
+                    .add("lastName", Type.stringType(10));
             t1.createTable(s, "table1");
             t1.insert("table1", 1, "Jane", "Doe");
             t1.insert("table1", 2, "John", "Doe");
@@ -209,9 +208,9 @@ public class TestDatabase {
     public void testAggQuery() {
         try (Transaction t1 = db.beginTransaction()) {
             Schema s = new Schema()
-                .add("id", Type.intType())
-                .add("firstName", Type.stringType(10))
-                .add("lastName", Type.stringType(10));
+                    .add("id", Type.intType())
+                    .add("firstName", Type.stringType(10))
+                    .add("lastName", Type.stringType(10));
             t1.createTable(s, "table1");
             t1.insert("table1", 1, "Jack", "Doe");
             t1.insert("table1", 2, "John", "Doe");
@@ -276,7 +275,7 @@ public class TestDatabase {
         try (Transaction t2 = db.beginTransaction()) {
             // UPDATE table1 SET id = id + 10 WHERE lastName = 'Doe'
             t2.update("table1", "id", (DataBox x) -> new IntDataBox(x.getInt() + 10),
-                      "lastName", PredicateOperator.EQUALS, new StringDataBox("Doe", 10));
+                    "lastName", PredicateOperator.EQUALS, new StringDataBox("Doe", 10));
 
             Iterator<Record> iter = t2.query("table1").execute();
             assertEquals(new Record(11, "Jack", "Doe"), iter.next());

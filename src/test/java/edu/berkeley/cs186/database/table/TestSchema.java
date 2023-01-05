@@ -15,26 +15,26 @@ public class TestSchema {
     @Test
     public void testSizeInBytes() {
         Schema[] schemas = {
-            // Single column.
-            new Schema().add("x", Type.boolType()),
-            new Schema().add("x", Type.intType()),
-            new Schema().add("x", Type.floatType()),
-            new Schema().add("x", Type.stringType(1)),
-            new Schema().add("x", Type.stringType(10)),
+                // Single column.
+                new Schema().add("x", Type.boolType()),
+                new Schema().add("x", Type.intType()),
+                new Schema().add("x", Type.floatType()),
+                new Schema().add("x", Type.stringType(1)),
+                new Schema().add("x", Type.stringType(10)),
 
-            // Multiple columns.
-            new Schema()
-                .add("x", Type.boolType())
-                .add("y", Type.intType())
-                .add("z", Type.floatType()),
-            new Schema()
-                .add("x", Type.boolType())
-                .add("y", Type.stringType(42))
+                // Multiple columns.
+                new Schema()
+                        .add("x", Type.boolType())
+                        .add("y", Type.intType())
+                        .add("z", Type.floatType()),
+                new Schema()
+                        .add("x", Type.boolType())
+                        .add("y", Type.stringType(42))
         };
 
         int[] expectedSizes = {1, 4, 4, 1, 10, 9, 43};
 
-        assert(schemas.length == expectedSizes.length);
+        assert (schemas.length == expectedSizes.length);
         for (int i = 0; i < schemas.length; ++i) {
             assertEquals(expectedSizes[i], schemas[i].getSizeInBytes());
         }
@@ -44,12 +44,12 @@ public class TestSchema {
     public void testVerifyValidRecords() {
         try {
             Schema[] schemas = {
-                new Schema(),
-                new Schema().add("x", Type.boolType()),
-                new Schema().add("x", Type.intType()),
-                new Schema().add("x", Type.floatType()),
-                new Schema().add("x", Type.stringType(1)),
-                new Schema().add("x", Type.stringType(2)),
+                    new Schema(),
+                    new Schema().add("x", Type.boolType()),
+                    new Schema().add("x", Type.intType()),
+                    new Schema().add("x", Type.floatType()),
+                    new Schema().add("x", Type.stringType(1)),
+                    new Schema().add("x", Type.stringType(2)),
             };
             Record[] records = {
                     new Record(),
@@ -60,7 +60,7 @@ public class TestSchema {
                     new Record("ab")
             };
 
-            assert(schemas.length == records.length);
+            assert (schemas.length == records.length);
             for (int i = 0; i < schemas.length; ++i) {
                 Schema s = schemas[i];
                 Record r = records[i];
@@ -88,21 +88,21 @@ public class TestSchema {
     @Test
     public void testToAndFromBytes() {
         Schema[] schemas = {
-            // Single column.
-            new Schema().add("x", Type.intType()),
-            new Schema().add("x", Type.floatType()),
-            new Schema().add("x", Type.boolType()),
-            new Schema().add("x", Type.stringType(1)),
-            new Schema().add("x", Type.stringType(10)),
+                // Single column.
+                new Schema().add("x", Type.intType()),
+                new Schema().add("x", Type.floatType()),
+                new Schema().add("x", Type.boolType()),
+                new Schema().add("x", Type.stringType(1)),
+                new Schema().add("x", Type.stringType(10)),
 
-            // Multiple columns.
-            new Schema()
-                .add("x", Type.boolType())
-                .add("y", Type.intType())
-                .add("z", Type.floatType()),
-            new Schema()
-                .add("x", Type.boolType())
-                .add("y", Type.stringType(42))
+                // Multiple columns.
+                new Schema()
+                        .add("x", Type.boolType())
+                        .add("y", Type.intType())
+                        .add("z", Type.floatType()),
+                new Schema()
+                        .add("x", Type.boolType())
+                        .add("y", Type.stringType(42))
         };
 
         for (Schema schema : schemas) {

@@ -10,9 +10,9 @@ import java.util.List;
 import java.util.Optional;
 
 public class StatementListVisitor extends RookieParserDefaultVisitor {
+    public List<StatementVisitor> statementVisitors;
     private Database database;
     private PrintStream out;
-    public List<StatementVisitor> statementVisitors;
 
     public StatementListVisitor(Database database, PrintStream out) {
         this.database = database;
@@ -21,8 +21,8 @@ public class StatementListVisitor extends RookieParserDefaultVisitor {
     }
 
     public Transaction execute(Transaction currTransaction) {
-        for (StatementVisitor visitor: this.statementVisitors) {
-            switch(visitor.getType()) {
+        for (StatementVisitor visitor : this.statementVisitors) {
+            switch (visitor.getType()) {
                 case BEGIN:
                     if (currTransaction != null) {
                         this.out.println("WARNING: Transaction already in progress. Ignoring.");
@@ -45,7 +45,7 @@ public class StatementListVisitor extends RookieParserDefaultVisitor {
                         this.out.println("WARNING: No transaction in progress");
                     } else {
                         Optional<String> savepointName = visitor.getSavepointName();
-                        if(savepointName.isPresent()) {
+                        if (savepointName.isPresent()) {
                             try {
                                 currTransaction.rollbackToSavepoint(savepointName.get());
                             } catch (Exception e) {
@@ -77,7 +77,7 @@ public class StatementListVisitor extends RookieParserDefaultVisitor {
                             this.out.println("Operation failed.");
                         }
                     }
-                break;
+                    break;
             }
         }
         return currTransaction;

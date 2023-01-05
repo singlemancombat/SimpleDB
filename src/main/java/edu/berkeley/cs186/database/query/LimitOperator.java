@@ -49,7 +49,9 @@ public class LimitOperator extends QueryOperator {
     }
 
     @Override
-    public List<String> sortedBy() { return getSource().sortedBy(); }
+    public List<String> sortedBy() {
+        return getSource().sortedBy();
+    }
 
     private class LimitIterator implements Iterator<Record> {
         int limit;

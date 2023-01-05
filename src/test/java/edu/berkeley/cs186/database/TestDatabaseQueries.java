@@ -20,11 +20,10 @@ import static org.junit.Assert.assertEquals;
 
 @Category({Proj99Tests.class})
 public class TestDatabaseQueries {
-    private Database database;
-    private Transaction transaction;
-
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
+    private Database database;
+    private Transaction transaction;
 
     @Before
     public void setup() throws IOException {

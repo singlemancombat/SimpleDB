@@ -1,6 +1,6 @@
 package edu.berkeley.cs186.database.cli.visitor;
 
-enum StatementType{
+enum StatementType {
     CREATE_TABLE,
     CREATE_INDEX,
     DROP_TABLE,
